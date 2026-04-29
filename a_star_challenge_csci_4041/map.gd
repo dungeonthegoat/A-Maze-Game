@@ -1,5 +1,114 @@
 class_name Map
 extends TileMapLayer
+## A class that handles tiles and pathfinding
+
+@export_group("Config")
+@export var resolution: Vector2i = Vector2i(36, 20)
+
+var _neighbors: Dictionary[Vector2i, Array] = {}
+
+
+func _ready():
+	_init_neighbors()
+
+	display_tree(GridTree.new(Vector2i.ZERO, [GridTree.new(Vector2i(2, 0), [])]))
+
+
+## Returns an array dictating the path of cells to take to get from start to goal
+func pathfind(start: Vector2i, goal: Vector2i) -> Array[Vector2i]:
+	var open_cells: CellHeap = CellHeap.new().insert(Cell.new(start, 0, absi(start.x - goal.x) + absi(start.y - goal.y), null))
+	var closed_positions: Dictionary = {}
+	var current: Cell
+
+	while not open_cells.is_empty():
+		current = open_cells.pop()
+
+		if current.pos == goal: # Reached the end
+			return _reconstruct_path(current)
+		
+		closed_positions[current.pos] = true
+
+		for neighbor_pos: Vector2i in _neighbors[current.pos]:
+			if closed_positions.has(neighbor_pos): continue
+
+			var g: int = current.g_cost + 1
+			var h: int = absi(neighbor_pos.x - goal.x) + absi(neighbor_pos.y - goal.y)
+			var neighbor_cell = Cell.new(neighbor_pos, g, h, current)
+
+			if open_cells.map.has(neighbor_pos):
+				open_cells.update_cell(neighbor_cell)
+			else:
+				open_cells.insert(neighbor_cell)
+
+	return []
+
+
+## Checks whether a given cell is valid to traverse on
+func is_cell_valid(coords: Vector2i) -> bool:
+	return get_cell_atlas_coords(coords) == Vector2i.ZERO
+
+
+## Updates the tile map to display a given grid graph
+func display_tree(tree: GridTree) -> void:
+	clear()
+	for x in range(-resolution.x / 2, resolution.x / 2):
+		for y in range(-resolution.y / 2, resolution.y / 2):
+			set_cell(Vector2i(x, y), 0, Vector2i(1, 0))
+
+	_display_sub_tree(tree)
+
+
+func _display_sub_tree(tree: GridTree) -> void:
+	set_cell(tree.position, 0, Vector2i.ZERO)
+
+	for other in tree.trees:
+		set_cell((tree.position + other.position) / 2, 0, Vector2i.ZERO)
+		_display_sub_tree(other)
+
+
+
+## Initializes the neighbors of every cell into a dictionary to allow for faster cell-neighbor lookup
+func _init_neighbors():
+	for pos in get_used_cells():
+		_neighbors[pos] = []
+		var dirs: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+
+		for dir in dirs:
+			if not is_cell_valid(pos + dir): continue
+			_neighbors[pos].append(pos + dir)
+
+
+## Returns the path from the start of a pathfind to the given cell
+func _reconstruct_path(cell: Cell) -> Array[Vector2i]:
+	var path: Array[Vector2i] = []
+	var current: Cell = cell
+
+	while current != null:
+		path.append(current.pos)
+		current = current.prev
+	
+	path.reverse()
+	return path
+
+class GridTree:
+	var position: Vector2i
+	var trees: Array[GridTree]
+
+	func _init(pos: Vector2i, new_trees: Array[GridTree]) -> void:
+		position = pos
+		trees = new_trees
+
+class GridGraph:
+	var vertices: Array[Vertex]
+	var edges: Array[Edge]
+
+class Vertex:
+	var position: Vector2i
+
+class Edge:
+	var from: Vertex
+	var to: Vertex
+	var weight: float
 
 class Cell:
 	var prev: Cell
@@ -105,59 +214,3 @@ class CellHeap:
 		heap[r] = temp
 		heap[l].heap_idx = l
 		heap[r].heap_idx = r
-
-
-var neighbors: Dictionary[Vector2i, Array] = {}
-
-func _ready():
-	_init_neighbors()
-
-func _init_neighbors():
-	for pos in get_used_cells():
-		neighbors[pos] = []
-		var dirs: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
-
-		for dir in dirs:
-			if not is_cell_valid(pos + dir): continue
-			neighbors[pos].append(pos + dir)
-
-func pathfind(start: Vector2i, goal: Vector2i) -> Array[Vector2i]:
-	var open_cells: CellHeap = CellHeap.new().insert(Cell.new(start, 0, absi(start.x - goal.x) + absi(start.y - goal.y), null))
-	var closed_positions: Dictionary = {}
-	var current: Cell
-
-	while not open_cells.is_empty():
-		current = open_cells.pop()
-
-		if current.pos == goal: # Reached the end
-			return _reconstruct_path(current)
-		
-		closed_positions[current.pos] = true
-
-		for neighbor_pos: Vector2i in neighbors[current.pos]:
-			if closed_positions.has(neighbor_pos): continue
-
-			var g: int = current.g_cost + 1
-			var h: int = absi(neighbor_pos.x - goal.x) + absi(neighbor_pos.y - goal.y)
-			var neighbor_cell = Cell.new(neighbor_pos, g, h, current)
-
-			if open_cells.map.has(neighbor_pos):
-				open_cells.update_cell(neighbor_cell)
-			else:
-				open_cells.insert(neighbor_cell)
-
-	return []
-
-func _reconstruct_path(cell: Cell) -> Array[Vector2i]:
-	var path: Array[Vector2i] = []
-	var current: Cell = cell
-
-	while current != null:
-		path.append(current.pos)
-		current = current.prev
-	
-	path.reverse()
-	return path
-
-func is_cell_valid(coords: Vector2i) -> bool:
-	return get_cell_atlas_coords(coords) == Vector2i.ZERO

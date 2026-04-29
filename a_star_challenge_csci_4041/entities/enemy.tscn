@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://cidtv8w4mv6nh"]
+
+[ext_resource type="Texture2D" uid="uid://cfsk3owhpu6f0" path="res://sprites/game_sprites.png" id="1_pqhw6"]
+[ext_resource type="Script" uid="uid://b02np4obs8wwj" path="res://entities/enemy.gd" id="2_b4nis"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1bvp3"]
+atlas = ExtResource("1_pqhw6")
+region = Rect2(0, 16, 16, 16)
+
+[node name="Enemy" type="Sprite2D" unique_id=627184935 node_paths=PackedStringArray("map", "player", "line")]
+z_index = 2
+texture = SubResource("AtlasTexture_1bvp3")
+script = ExtResource("2_b4nis")
+independent_movement = true
+map = NodePath("")
+player = NodePath("")
+line = NodePath("")

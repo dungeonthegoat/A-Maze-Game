@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://ceu354p11d0if"]
+
+[ext_resource type="Texture2D" uid="uid://cfsk3owhpu6f0" path="res://sprites/game_sprites.png" id="1_b0kkn"]
+[ext_resource type="Script" uid="uid://bmucmcsls844w" path="res://entities/player.gd" id="2_e4p34"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0xm2m"]
+atlas = ExtResource("1_b0kkn")
+region = Rect2(16, 16, 16, 16)
+
+[node name="Player" type="Sprite2D" unique_id=1227592828 node_paths=PackedStringArray("map")]
+z_index = 2
+texture = SubResource("AtlasTexture_0xm2m")
+script = ExtResource("2_e4p34")
+map = NodePath("")
