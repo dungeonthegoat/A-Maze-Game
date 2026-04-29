@@ -47,6 +47,7 @@ z_index = 2
 position = Vector2(-614, -455)
 texture = SubResource("AtlasTexture_1bvp3")
 script = ExtResource("4_1bvp3")
+independent_movement = true
 map = NodePath("../Map")
 player = NodePath("../Player")
 line = NodePath("../Line2D")

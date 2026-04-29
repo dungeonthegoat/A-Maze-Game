@@ -18,7 +18,6 @@ class Cell:
 		h_cost = h
 		f_cost = g + h
 
-
 class CellHeap:
 	var heap: Array[Cell] = []
 	var map: Dictionary[Vector2i, Cell] = {}
@@ -26,6 +25,7 @@ class CellHeap:
 	func is_empty() -> bool:
 		return heap.is_empty()
 
+	## Inserts a cell at the very end of the array and shifts it up into place
 	func insert(cell: Cell) -> CellHeap:
 		heap.append(cell)
 		cell.heap_idx = heap.size() - 1
@@ -33,11 +33,14 @@ class CellHeap:
 		_shift_up(cell.heap_idx)
 		return self
 	
+	## Removes the top cell of the array and readjusts the rest of the heap
 	func pop() -> Cell:
 		if heap.is_empty(): return null
 		var root: Cell = heap[0]
 		map.erase(root.pos)
 
+		# The last cell is removed and then replaces where the first cell was
+		# so that the heap does not blow up
 		var last: Cell = heap.pop_back()
 		if not heap.is_empty():
 			heap[0] = last
@@ -46,12 +49,16 @@ class CellHeap:
 		
 		return root
 
+	## Attempts to replace a cell in the heap with another cell (at the same 
+	## position) with a better g_cost
 	func update_cell(new: Cell) -> void:
 		var old: Cell = map[new.pos]
 		if old and new.g_cost < old.g_cost:
 			old.g_cost = new.g_cost
 			old.f_cost = new.f_cost
 			old.prev = new.prev
+			# Since the new cell is guaranteed to have a higher f_cost,
+			# you only have to worry about shifting it up
 			_shift_up(old.heap_idx)
 
 	func _shift_up(idx: int) -> void:
@@ -79,7 +86,7 @@ class CellHeap:
 			else: return
 
 	func _get_parent(idx: int) -> int:
-		return (idx - 1) / 2
+		return floori((idx - 1) / 2.0)
 
 	func _get_left_child(idx: int) -> int:
 		return 2 * idx + 1
