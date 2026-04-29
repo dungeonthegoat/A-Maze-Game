@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cusotysjucmfr" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="Texture2D" uid="uid://cfsk3owhpu6f0" path="res://sprites/game_sprites.png" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://bmucmcsls844w" path="res://player.gd" id="3_h2yge"]
+[ext_resource type="Script" uid="uid://b02np4obs8wwj" path="res://enemy.gd" id="4_1bvp3"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0xm2m"]
 texture = ExtResource("1_ig7tw")
@@ -15,6 +16,10 @@ sources/0 = SubResource("TileSetAtlasSource_0xm2m")
 [sub_resource type="AtlasTexture" id="AtlasTexture_0xm2m"]
 atlas = ExtResource("1_ig7tw")
 region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1bvp3"]
+atlas = ExtResource("1_ig7tw")
+region = Rect2(0, 16, 16, 16)
 
 [node name="Main" type="Node2D" unique_id=1050225579]
 script = ExtResource("1_0xm2m")
@@ -30,3 +35,10 @@ position = Vector2(52, 37)
 texture = SubResource("AtlasTexture_0xm2m")
 script = ExtResource("3_h2yge")
 tile_map = NodePath("../TileMapLayer")
+
+[node name="Enemy" type="Sprite2D" parent="." unique_id=1645172499 node_paths=PackedStringArray("tile_map", "player")]
+position = Vector2(-103, -104)
+texture = SubResource("AtlasTexture_1bvp3")
+script = ExtResource("4_1bvp3")
+tile_map = NodePath("../TileMapLayer")
+player = NodePath("../Player")

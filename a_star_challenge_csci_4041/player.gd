@@ -10,7 +10,6 @@ var grid_pos: Vector2i:
 
 func _ready() -> void:
 	grid_pos = tile_map.local_to_map(global_position)
-	print(grid_pos)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("left"): attempt_move(Vector2i.LEFT)
