@@ -2,86 +2,142 @@ class_name Map
 extends TileMapLayer
 
 class Cell:
-	var goal: Vector2i
 	var prev: Cell
 	var pos: Vector2i
+	var heap_idx: int
 
-	var f_cost: float
-	var h_cost: float
-	var g_cost: float
+	var f_cost: int
+	var h_cost: int
+	var g_cost: int
 
-	func _init(new_goal: Vector2i, new_pos: Vector2i, new_prev_cell: Cell) -> void:
-		self.goal = new_goal
-		self.pos = new_pos
-		self.prev = new_prev_cell
+	func _init(new_pos: Vector2i, g: int, h: int, prev_cell: Cell) -> void:
+		pos = new_pos
+		prev = prev_cell
 
-		if prev:
-			self.g_cost = prev.g_cost + 1.0
-		else:
-			self.g_cost = 0.0
-
-		self.h_cost = abs(pos.x - goal.x) + abs(pos.y - goal.y)
-		self.f_cost = self.g_cost + self.h_cost
+		g_cost = g
+		h_cost = h
+		f_cost = g + h
 
 
-func get_neighbors(pos: Vector2i) -> Array[Vector2i]:
-	var neighbors: Array[Vector2i] = []
-	var dirs: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+class CellHeap:
+	var heap: Array[Cell] = []
+	var map: Dictionary[Vector2i, Cell] = {}
 
-	for dir in dirs:
-		if not is_cell_valid(pos + dir): continue
-		neighbors.append(pos + dir)
+	func is_empty() -> bool:
+		return heap.is_empty()
 
-	return neighbors
+	func insert(cell: Cell) -> CellHeap:
+		heap.append(cell)
+		cell.heap_idx = heap.size() - 1
+		map[cell.pos] = cell
+		_shift_up(cell.heap_idx)
+		return self
+	
+	func pop() -> Cell:
+		if heap.is_empty(): return null
+		var root: Cell = heap[0]
+		map.erase(root.pos)
 
-func get_best_f_cost(cells: Array[Cell]) -> Cell:
-	var best_cell = null
-	var best_cost = INF
+		var last: Cell = heap.pop_back()
+		if not heap.is_empty():
+			heap[0] = last
+			last.heap_idx = 0
+			_shift_down(0)
+		
+		return root
 
-	for cell in cells:
-		var f_cost: float = cell.f_cost
-		if f_cost < best_cost:
-			best_cell = cell
-			best_cost = f_cost
+	func update_cell(new: Cell) -> void:
+		var old: Cell = map[new.pos]
+		if old and new.g_cost < old.g_cost:
+			old.g_cost = new.g_cost
+			old.f_cost = new.f_cost
+			old.prev = new.prev
+			_shift_up(old.heap_idx)
 
-	return best_cell
+	func _shift_up(idx: int) -> void:
+		while idx > 0:
+			var parent_i: int = _get_parent(idx)
+			if _higher_priority(heap[idx], heap[parent_i]):
+				_swap(idx, parent_i)
+				idx = parent_i
+			else: return
+			
+	func _shift_down(idx: int) -> void:
+		var smallest: int = idx
+		var size = heap.size()
 
-func get_neighboring_cells(cell: Cell) -> Array[Cell]:
-	var neighbors: Array[Cell] = []
+		while true:
+			var left: int = _get_left_child(idx)
+			var right: int = _get_right_child(idx)
 
-	for pos in get_neighbors(cell.pos):
-		neighbors.append(Cell.new(cell.goal, pos, cell))
+			if left < size and _higher_priority(heap[left], heap[smallest]): smallest = left
+			if right < size and _higher_priority(heap[right], heap[smallest]): smallest = right
 
-	return neighbors
+			if smallest != idx:
+				_swap(smallest, idx)
+				idx = smallest
+			else: return
+
+	func _get_parent(idx: int) -> int:
+		return (idx - 1) / 2
+
+	func _get_left_child(idx: int) -> int:
+		return 2 * idx + 1
+	
+	func _get_right_child(idx: int) -> int:
+		return 2 * idx + 2
+	
+	func _higher_priority(l: Cell, r: Cell) -> bool:
+		if l.f_cost == r.f_cost:
+			return l.h_cost < r.h_cost
+		return l.f_cost < r.f_cost
+
+	func _swap(l: int, r: int) -> void:
+		var temp = heap[l]
+		heap[l] = heap[r]
+		heap[r] = temp
+		heap[l].heap_idx = l
+		heap[r].heap_idx = r
+
+
+var neighbors: Dictionary[Vector2i, Array] = {}
+
+func _ready():
+	_init_neighbors()
+
+func _init_neighbors():
+	for pos in get_used_cells():
+		neighbors[pos] = []
+		var dirs: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+
+		for dir in dirs:
+			if not is_cell_valid(pos + dir): continue
+			neighbors[pos].append(pos + dir)
 
 func pathfind(start: Vector2i, goal: Vector2i) -> Array[Vector2i]:
-	var open_cells: Array[Cell] = [Cell.new(goal, start, null)]
+	var open_cells: CellHeap = CellHeap.new().insert(Cell.new(start, 0, absi(start.x - goal.x) + absi(start.y - goal.y), null))
 	var closed_positions: Dictionary = {}
 	var current: Cell
 
 	while not open_cells.is_empty():
-		current = get_best_f_cost(open_cells)
+		current = open_cells.pop()
+
 		if current.pos == goal: # Reached the end
 			return _reconstruct_path(current)
 		
-		open_cells.erase(current)
 		closed_positions[current.pos] = true
 
-		for neighbor: Cell in get_neighboring_cells(current):
-			if closed_positions.has(neighbor.pos): continue
+		for neighbor_pos: Vector2i in neighbors[current.pos]:
+			if closed_positions.has(neighbor_pos): continue
 
-			var is_open: bool = false
-			for cell in open_cells:
-				if cell.pos == neighbor.pos:
-					is_open = true
-					# Here, we check if the same position is already occupied in the set, 
-					# and if there exists a better path, use that one instead
-					if neighbor.g_cost < cell.g_cost:
-						open_cells.erase(cell)
-						open_cells.append(neighbor)
+			var g: int = current.g_cost + 1
+			var h: int = absi(neighbor_pos.x - goal.x) + absi(neighbor_pos.y - goal.y)
+			var neighbor_cell = Cell.new(neighbor_pos, g, h, current)
 
-			if not is_open:
-				open_cells.append(neighbor)
+			if open_cells.map.has(neighbor_pos):
+				open_cells.update_cell(neighbor_cell)
+			else:
+				open_cells.insert(neighbor_cell)
 
 	return []
 
