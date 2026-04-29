@@ -22,6 +22,7 @@ func attempt_move(direction: Vector2i) -> void:
 	if not is_cell_valid(next_grid_pos): return
 
 	grid_pos = next_grid_pos
+	SignalBus.player_moved.emit(grid_pos)
 
 func _update_position(new_grid_pos: Vector2i) -> void:
 	global_position = tile_map.map_to_local(new_grid_pos)
