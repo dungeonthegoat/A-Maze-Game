@@ -9,9 +9,12 @@ var _neighbors: Dictionary[Vector2i, Array] = {}
 
 
 func _ready():
-	_init_neighbors()
+	generate_maze(0)
 
-	display_tree(GridTree.new(Vector2i.ZERO, [GridTree.new(Vector2i(2, 0), [])]))
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("debug_map"):
+		generate_maze(randi())
 
 
 ## Returns an array dictating the path of cells to take to get from start to goal
@@ -49,26 +52,84 @@ func is_cell_valid(coords: Vector2i) -> bool:
 
 
 ## Updates the tile map to display a given grid graph
-func display_tree(tree: GridTree) -> void:
+func display_edges(edges: Array[Edge]) -> void:
+	# 1. Clear the existing tile map and replace it with all walls
 	clear()
 	for x in range(-resolution.x / 2, resolution.x / 2):
 		for y in range(-resolution.y / 2, resolution.y / 2):
 			set_cell(Vector2i(x, y), 0, Vector2i(1, 0))
 
-	_display_sub_tree(tree)
+	var offset: Vector2i = resolution / 2 - Vector2i.ONE
+
+	# 2. Display the edges themselves
+	for edge in edges:
+		set_cell(edge.from.position * 2 - offset, 0, Vector2i.ZERO)
+		set_cell(edge.to.position * 2 - offset, 0, Vector2i.ZERO)
+		set_cell((edge.to.position + edge.from.position) - offset, 0, Vector2i.ZERO)
 
 
-func _display_sub_tree(tree: GridTree) -> void:
-	set_cell(tree.position, 0, Vector2i.ZERO)
+## Generates a procedural maze that is ready for pathfinding
+func generate_maze(seed: int) -> void:
+	# 1. Generate a grid graph of the desired resolution
+	var grid_graph: GridGraph = GridGraph.new(resolution, seed)
+	# 2. Display the edges and update the physical tile map
+	display_edges(_prim(grid_graph.vertices, grid_graph.edges))
+	# 3. Update the neighbors dictionary to prepare for pathfinding
+	_init_neighbors()
 
-	for other in tree.trees:
-		set_cell((tree.position + other.position) / 2, 0, Vector2i.ZERO)
-		_display_sub_tree(other)
 
+func _prim(vertices: Array[Vertex], edges: Array[Edge]) -> Array[Edge]:
+	# Initialize the cheapest cost and edge dictionaries
+	var cheapest_cost: Dictionary[Vertex, float]
+	var cheapest_edge: Dictionary[Vertex, Edge]
+	for vertex in vertices:
+		cheapest_cost[vertex] = INF
+	
+	var explored = []
+	var unexplored = vertices.duplicate_deep()
+
+	var start_vert = vertices[0]
+	cheapest_cost[start_vert] = 0
+
+	var current_vert: Vertex
+
+	while not unexplored.is_empty():
+		current_vert = _get_cheapest_cost_vertex(cheapest_cost, unexplored)
+		unexplored.erase(current_vert)
+		explored.append(current_vert)
+
+		for edge in edges:
+			# Only worry about relevant edges
+			if edge.from != current_vert and edge.to != current_vert: continue
+			var neighbor: Vertex = edge.from if edge.from != current_vert else edge.to
+
+			if unexplored.has(neighbor) and edge.weight < cheapest_cost[neighbor]:
+				cheapest_cost[neighbor] = edge.weight
+				cheapest_edge[neighbor] = edge
+
+	var result_edges: Array[Edge] = []
+	for edge in cheapest_edge.values():
+		result_edges.append(edge)
+
+	return result_edges
+
+
+func _get_cheapest_cost_vertex(costs: Dictionary[Vertex, float], unexplored: Array[Vertex]) -> Vertex:
+	var cheapest_cost: float = INF
+	var cheapest_vert: Vertex = null
+
+	for vertex in unexplored:
+		if costs[vertex] < cheapest_cost:
+			cheapest_cost = costs[vertex]
+			cheapest_vert = vertex
+	
+	return cheapest_vert
 
 
 ## Initializes the neighbors of every cell into a dictionary to allow for faster cell-neighbor lookup
 func _init_neighbors():
+	_neighbors.clear()
+
 	for pos in get_used_cells():
 		_neighbors[pos] = []
 		var dirs: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
@@ -90,25 +151,44 @@ func _reconstruct_path(cell: Cell) -> Array[Vector2i]:
 	path.reverse()
 	return path
 
-class GridTree:
-	var position: Vector2i
-	var trees: Array[GridTree]
-
-	func _init(pos: Vector2i, new_trees: Array[GridTree]) -> void:
-		position = pos
-		trees = new_trees
-
 class GridGraph:
 	var vertices: Array[Vertex]
 	var edges: Array[Edge]
 
+	func _init(resolution: Vector2i, seed: int) -> void:
+		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+		rng.seed = seed
+		# Since the lattice grid is spaced out, we space out the resolution
+		# to account for this
+		var scaled_resolution: Vector2i = (resolution - Vector2i.ONE) / 2
+		# A dictionary to temporarily store the vertices for easy access when
+		# creating edges
+		var temp_verts: Dictionary[Vector2i, Vertex]
+
+		for x in range(scaled_resolution.x):
+			for y in range(scaled_resolution.y):
+				temp_verts[Vector2i(x, y)] = Vertex.new(Vector2i(x, y))
+				vertices.append(temp_verts[Vector2i(x, y)])
+				if temp_verts.has(Vector2i(x - 1, y)):
+					edges.append(Edge.new(temp_verts[Vector2i(x, y)], temp_verts[Vector2i(x - 1, y)], rng.randf()))
+				if temp_verts.has(Vector2i(x, y - 1)):
+					edges.append(Edge.new(temp_verts[Vector2i(x, y)], temp_verts[Vector2i(x, y - 1)], rng.randf()))
+
 class Vertex:
 	var position: Vector2i
+
+	func _init(pos: Vector2i) -> void:
+		position = pos
 
 class Edge:
 	var from: Vertex
 	var to: Vertex
 	var weight: float
+
+	func _init(v1: Vertex, v2: Vertex, w: float) -> void:
+		from = v1
+		to = v2
+		weight = w
 
 class Cell:
 	var prev: Cell
