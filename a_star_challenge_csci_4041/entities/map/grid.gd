@@ -8,9 +8,18 @@ static func find_minimum_spanning_edges(vertices: Array[Vector2i], edges: Array[
 	# Initialize the cheapest cost and edge dictionaries
 	var cheapest_cost: Dictionary[Vector2i, float]
 	var cheapest_edge: Dictionary[Vector2i, Edge]
+
+	# Store all of the adjacent edges
+	var adj_edges: Dictionary[Vector2i, Array] = {}
+
 	for vertex in vertices:
 		cheapest_cost[vertex] = INF
+		adj_edges[vertex] = []
 	
+	for edge in edges:
+		adj_edges[edge.from].append(edge)
+		adj_edges[edge.to].append(edge)
+
 	var explored = []
 	var unexplored = vertices.duplicate_deep()
 
@@ -24,9 +33,7 @@ static func find_minimum_spanning_edges(vertices: Array[Vector2i], edges: Array[
 		unexplored.erase(current_vert)
 		explored.append(current_vert)
 
-		for edge in edges:
-			# Only worry about relevant edges
-			if edge.from != current_vert and edge.to != current_vert: continue
+		for edge in adj_edges[current_vert]:
 			var neighbor: Vector2i = edge.from if edge.from != current_vert else edge.to
 			
 			if unexplored.has(neighbor) and edge.weight < cheapest_cost[neighbor]:
