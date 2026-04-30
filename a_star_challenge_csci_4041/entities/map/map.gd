@@ -58,7 +58,7 @@ func generate_maze(seed: int, num_keys: int) -> void:
 	display_edges(maze)
 
 	# 3. Update the neighbors dictionary to prepare for pathfinding
-	_init_neighbors()
+	_init_neighbors(maze)
 
 	# 4. Spawn in the player and enemy
 	_spawn_entities(maze)
@@ -121,13 +121,16 @@ func _spawn_keys(maze: Array[Edge], key_count: int) -> void:
 
 
 ## Initializes the neighbors of every cell into a dictionary to allow for faster cell-neighbor lookup
-func _init_neighbors():
+func _init_neighbors(maze: Array[Edge]):
 	neighbor_map.clear()
+	var offset: Vector2i = resolution / 2 - Vector2i.ONE
 
-	for pos in get_used_cells():
-		neighbor_map[pos] = []
-		var dirs: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+	for edge in maze:
+		var from: Vector2i = edge.from * 2 - offset
+		var to: Vector2i = edge.to * 2 - offset
+		var mid: Vector2i = (edge.to + edge.from) - offset
 
-		for dir in dirs:
-			if not is_cell_valid(pos + dir): continue
-			neighbor_map[pos].append(pos + dir)
+		if not neighbor_map.get_or_add(from, []).has(mid): neighbor_map[from].append(mid)
+		if not neighbor_map.get_or_add(mid, []).has(from): neighbor_map[mid].append(from)
+		if not neighbor_map.get_or_add(to, []).has(mid): neighbor_map[to].append(mid)
+		if not neighbor_map.get_or_add(mid, []).has(to): neighbor_map[mid].append(to)
