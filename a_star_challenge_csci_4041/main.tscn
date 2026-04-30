@@ -1,25 +1,63 @@
-[gd_scene format=3 uid="uid://c4q87vvihwthr"]
+[gd_scene format=4 uid="uid://c4q87vvihwthr"]
 
+[ext_resource type="Script" uid="uid://b7euxrd4xv1qs" path="res://player_camera.gd" id="1_h2yge"]
 [ext_resource type="Texture2D" uid="uid://cfsk3owhpu6f0" path="res://sprites/game_sprites.png" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://cp2libx2o85km" path="res://map.gd" id="2_1bvp3"]
+
+[sub_resource type="Gradient" id="Gradient_h2yge"]
+colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0.44705883)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_1bvp3"]
+gradient = SubResource("Gradient_h2yge")
+width = 512
+height = 512
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_h2yge"]
+polygon = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0xm2m"]
 texture = ExtResource("1_ig7tw")
 0:0/0 = 0
 1:0/0 = 0
+1:0/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_h2yge")
 
 [sub_resource type="TileSet" id="TileSet_h2yge"]
+occlusion_layer_0/light_mask = 1
 sources/0 = SubResource("TileSetAtlasSource_0xm2m")
+
+[sub_resource type="Environment" id="Environment_h2yge"]
+background_mode = 3
+glow_enabled = true
+glow_intensity = 5.0
+glow_bloom = 0.06
 
 [node name="Main" type="Node2D" unique_id=1050225579]
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=209801157]
+[node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=417070095]
+color = Color(0.2907391, 0.30217603, 0.40352032, 1)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=395506496]
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer" unique_id=1642056682]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("GradientTexture2D_1bvp3")
+
+[node name="PlayerCamera" type="Camera2D" parent="." unique_id=209801157]
+unique_name_in_owner = true
+zoom = Vector2(3, 3)
+script = ExtResource("1_h2yge")
 
 [node name="Map" type="TileMapLayer" parent="." unique_id=1622251131]
+tile_map_data = PackedByteArray("AAD9////AAAAAAAAAAD9/wAAAAAAAAAAAAD8/wAAAAAAAAAAAAD8////AAABAAAAAAD8//7/AAAAAAAAAAD9//7/AAAAAAAAAAD6//3/AAABAAAAAAD6//7/AAABAAAAAAD6////AAABAAAAAAD6/wAAAAABAAAAAAD6/wEAAAABAAAAAAD7//3/AAABAAAAAAD7//7/AAAAAAAAAAD7////AAAAAAAAAAD7/wAAAAAAAAAAAAD7/wEAAAABAAAAAAD8//3/AAABAAAAAAD8/wEAAAABAAAAAAD9//3/AAABAAAAAAD9/wEAAAABAAAAAAD+//3/AAABAAAAAAD+//7/AAABAAAAAAD+////AAABAAAAAAD+/wAAAAABAAAAAAD+/wEAAAABAAAAAAA=")
 tile_set = SubResource("TileSet_h2yge")
 script = ExtResource("2_1bvp3")
 resolution = Vector2i(72, 40)
 
-[node name="EnemyLine" type="Line2D" parent="." unique_id=895613305]
-z_index = 1
-default_color = Color(1, 0, 0, 0.29411766)
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1370816940]
+environment = SubResource("Environment_h2yge")

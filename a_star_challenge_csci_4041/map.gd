@@ -2,19 +2,29 @@ class_name Map
 extends TileMapLayer
 ## A class that handles tiles and pathfinding
 
+const PLAYER: PackedScene = preload("uid://ceu354p11d0if")
+const ENEMY: PackedScene = preload("uid://cidtv8w4mv6nh")
+
+
 @export_group("Config")
 @export var resolution: Vector2i = Vector2i(36, 20)
+@export var debug: bool = false
+@export var perfect_maze: bool = false
 
 var _neighbors: Dictionary[Vector2i, Array] = {}
+var _current_player: Player
+var _current_enemy: Enemy
 
+@onready var camera = get_tree().current_scene.get_node("%PlayerCamera")
 
 func _ready():
-	generate_maze(0)
+	generate_maze(randi())
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not debug: return
 	if event.is_action_pressed("debug_map"):
-		generate_maze(randi())
+		get_tree().reload_current_scene()
 
 
 ## Returns an array dictating the path of cells to take to get from start to goal
@@ -54,9 +64,10 @@ func is_cell_valid(coords: Vector2i) -> bool:
 ## Updates the tile map to display a given grid graph
 func display_edges(edges: Array[Edge]) -> void:
 	# 1. Clear the existing tile map and replace it with all walls
+	# (make sure to fill beyond the screen so the camera can pan around)
 	clear()
-	for x in range(-resolution.x / 2, resolution.x / 2):
-		for y in range(-resolution.y / 2, resolution.y / 2):
+	for x in range(-resolution.x, resolution.x):
+		for y in range(-resolution.y, resolution.y):
 			set_cell(Vector2i(x, y), 0, Vector2i(1, 0))
 
 	var offset: Vector2i = resolution / 2 - Vector2i.ONE
@@ -72,10 +83,42 @@ func display_edges(edges: Array[Edge]) -> void:
 func generate_maze(seed: int) -> void:
 	# 1. Generate a grid graph of the desired resolution
 	var grid_graph: GridGraph = GridGraph.new(resolution, seed)
+
 	# 2. Display the edges and update the physical tile map
-	display_edges(_prim(grid_graph.vertices, grid_graph.edges))
+	var maze: Array[Edge] = _prim(grid_graph.vertices, grid_graph.edges)
+	display_edges(maze)
+
 	# 3. Update the neighbors dictionary to prepare for pathfinding
 	_init_neighbors()
+
+	# 4. Spawn in the player and enemy
+	_spawn_entities(maze)
+
+
+## Spawns the player and enemies into the maze
+func _spawn_entities(maze: Array[Edge]) -> void:
+	# Spawn player
+	if _current_player:
+		_current_player.queue_free()
+	
+	_current_player = PLAYER.instantiate()
+	_current_player.map = self
+	add_child.call(_current_player)
+
+	var offset: Vector2i = resolution / 2 - Vector2i.ONE
+	_current_player.grid_pos = maze[0].from.position * 2 - offset
+	camera.player = _current_player
+
+	# Spawn enemy
+	if _current_enemy:
+		_current_enemy.queue_free()
+	
+	_current_enemy = ENEMY.instantiate()
+	_current_enemy.map = self
+	add_child.call(_current_enemy)
+
+	_current_enemy.grid_pos = maze[-1].from.position * 2 - offset
+	_current_enemy.player = _current_player
 
 
 func _prim(vertices: Array[Vertex], edges: Array[Edge]) -> Array[Edge]:
@@ -88,7 +131,7 @@ func _prim(vertices: Array[Vertex], edges: Array[Edge]) -> Array[Edge]:
 	var explored = []
 	var unexplored = vertices.duplicate_deep()
 
-	var start_vert = vertices[0]
+	var start_vert = vertices.pick_random()
 	cheapest_cost[start_vert] = 0
 
 	var current_vert: Vertex
@@ -103,13 +146,26 @@ func _prim(vertices: Array[Vertex], edges: Array[Edge]) -> Array[Edge]:
 			if edge.from != current_vert and edge.to != current_vert: continue
 			var neighbor: Vertex = edge.from if edge.from != current_vert else edge.to
 
+			
 			if unexplored.has(neighbor) and edge.weight < cheapest_cost[neighbor]:
 				cheapest_cost[neighbor] = edge.weight
 				cheapest_edge[neighbor] = edge
 
 	var result_edges: Array[Edge] = []
+	var extra_edges: Array[Edge] = edges.duplicate_deep()
 	for edge in cheapest_edge.values():
 		result_edges.append(edge)
+		extra_edges.erase(edge)
+
+	if not perfect_maze:
+		# After getting all of the edges, we want to add some extra edges
+		# to ensure that there are loops so the player can outmaneuver the
+		# enemy while being chased
+		var num_loops: int = edges.size() / 20
+		extra_edges.shuffle()
+		for i in range(num_loops):
+			if extra_edges.is_empty(): break
+			result_edges.append(extra_edges.pop_back())
 
 	return result_edges
 

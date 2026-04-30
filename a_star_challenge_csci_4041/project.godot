@@ -26,6 +26,7 @@ gdscript/warnings/narrowing_conversion=0
 [display]
 
 window/size/viewport_height=640
+window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [input]

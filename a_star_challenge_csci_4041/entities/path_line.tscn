@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://k0qw3ewluo02"]
+
+[node name="EnemyLine" type="Line2D" unique_id=836949721]
+z_index = 1
+default_color = Color(1, 0, 0, 0.29411766)

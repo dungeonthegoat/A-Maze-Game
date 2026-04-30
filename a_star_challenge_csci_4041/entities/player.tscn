@@ -7,8 +7,22 @@
 atlas = ExtResource("1_b0kkn")
 region = Rect2(16, 16, 16, 16)
 
-[node name="Player" type="Sprite2D" unique_id=1227592828 node_paths=PackedStringArray("map")]
+[sub_resource type="Gradient" id="Gradient_b0kkn"]
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_e4p34"]
+gradient = SubResource("Gradient_b0kkn")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[node name="Player" type="Sprite2D" unique_id=1227592828]
 z_index = 2
 texture = SubResource("AtlasTexture_0xm2m")
 script = ExtResource("2_e4p34")
-map = NodePath("")
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=213265205]
+color = Color(0.33999997, 0.7250001, 1, 1)
+shadow_enabled = true
+texture = SubResource("GradientTexture2D_e4p34")
+texture_scale = 4.0
