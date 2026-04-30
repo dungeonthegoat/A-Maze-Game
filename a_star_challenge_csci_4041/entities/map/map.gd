@@ -16,7 +16,7 @@ var neighbor_map: Dictionary[Vector2i, Array] = {}
 var _current_player: Player
 var _current_enemy: Enemy
 
-@onready var camera = get_tree().current_scene.get_node("%PlayerCamera")
+@onready var camera: PlayerCamera = get_tree().current_scene.get_node("%PlayerCamera")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -105,7 +105,7 @@ func _spawn_keys(maze: Array[Edge], key_count: int) -> void:
 		valid_positions[maze[idx].to] = true
 	
 	# Shuffle the keys of the valid spawn locations
-	var spawn_points := valid_positions.keys().duplicate_deep()
+	var spawn_points := valid_positions.keys()
 	spawn_points.shuffle()
 
 	# Spawn the keys
@@ -121,7 +121,7 @@ func _spawn_keys(maze: Array[Edge], key_count: int) -> void:
 
 
 ## Initializes the neighbors of every cell into a dictionary to allow for faster cell-neighbor lookup
-func _init_neighbors(maze: Array[Edge]):
+func _init_neighbors(maze: Array[Edge]) -> void:
 	neighbor_map.clear()
 	var offset: Vector2i = resolution / 2 - Vector2i.ONE
 

@@ -21,7 +21,7 @@ static func pathfind(start: Vector2i, goal: Vector2i, map: Map) -> Array[Vector2
 
 			var g: int = current.g_cost + 1
 			var h: int = absi(neighbor_pos.x - goal.x) + absi(neighbor_pos.y - goal.y)
-			var neighbor_cell = Cell.new(neighbor_pos, g, h, current)
+			var neighbor_cell: Cell = Cell.new(neighbor_pos, g, h, current)
 
 			if open_cells.map.has(neighbor_pos):
 				open_cells.update_cell(neighbor_cell)
@@ -114,7 +114,7 @@ class CellHeap:
 			
 	func _shift_down(idx: int) -> void:
 		var smallest: int = idx
-		var size = heap.size()
+		var size: int = heap.size()
 
 		while true:
 			var left: int = _get_left_child(idx)
@@ -143,7 +143,7 @@ class CellHeap:
 		return l.f_cost < r.f_cost
 
 	func _swap(l: int, r: int) -> void:
-		var temp = heap[l]
+		var temp: Cell = heap[l]
 		heap[l] = heap[r]
 		heap[r] = temp
 		heap[l].heap_idx = l

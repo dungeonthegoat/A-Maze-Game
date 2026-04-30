@@ -49,7 +49,7 @@ func _ready() -> void:
 		add_child.call_deferred(_move_timer)
 
 
-func _process(delta):
+func _process(delta: float) -> void:
 	global_position = global_position.lerp(_target_pos, 1.0 - exp(-delta * smoothing))
 
 

@@ -23,32 +23,44 @@ static func find_minimum_spanning_edges(vertices: Array[Vector2i], edges: Array[
 		adj_edges[edge.from].append(edge)
 		adj_edges[edge.to].append(edge)
 
-	var start_vert = vertices.pick_random()
+	var start_vert: Vector2i = vertices.pick_random()
 	cheapest_cost.insert(MinHeap.Vert.new(start_vert, 0))
 
 	var current_vert: Vector2i
 
 	while not cheapest_cost.is_empty():
+		# Set the current vertex to the cheapest one
 		current_vert = cheapest_cost.pop().position
 		explored[current_vert] = true
 
-		for edge in adj_edges[current_vert]:
+		for edge: Edge in adj_edges[current_vert]:
 			var neighbor: Vector2i = edge.from if edge.from != current_vert else edge.to
-			
-			if not explored[neighbor] and edge.weight < cheapest_cost.get_weight(neighbor):
-				cheapest_cost.update_weight(neighbor, edge.weight)
+			if explored[neighbor]: continue
+
+			var neighbor_vert: MinHeap.Vert = cheapest_cost.map[neighbor]
+
+			if edge.weight < neighbor_vert.weight:
+				neighbor_vert.weight = edge.weight
+				cheapest_cost._shift_up(neighbor_vert.idx)
 				cheapest_edge[neighbor] = edge
 
 	var result_edges: Array[Edge] = []
-	var extra_edges: Array[Edge] = edges.duplicate_deep()
-	for edge in cheapest_edge.values():
+	var used_edges: Dictionary[Edge, bool] = {}
+
+	for edge: Edge in cheapest_edge.values():
 		result_edges.append(edge)
-		extra_edges.erase(edge)
+		used_edges[edge] = true
 
 	if not make_perfect:
 		# After getting all of the edges, we want to add some extra edges
 		# to ensure that there are loops so the player can outmaneuver the
 		# enemy while being chased
+		var extra_edges: Array[Edge] = []
+
+		for edge in edges:
+			if not used_edges.has(edge):
+				extra_edges.append(edge)
+
 		var num_loops: int = edges.size() / 20
 		extra_edges.shuffle()
 		for i in range(num_loops):

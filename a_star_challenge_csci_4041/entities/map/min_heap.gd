@@ -7,7 +7,7 @@ class Vert:
 	var weight: float
 	var idx: int
 
-	func _init(pos, w, i = 0) -> void:
+	func _init(pos: Vector2i, w: float, i: int = 0) -> void:
 		position = pos
 		weight = w
 		idx = i
@@ -43,57 +43,47 @@ func pop() -> Vert:
 	
 	return root
 
-func get_weight(position: Vector2i) -> float:
-	return map[position].weight
-
-
-func update_weight(pos: Vector2i, new_weight: float) -> void:
-	var old: Vert = map[pos]
-	if old and new_weight < old.weight:
-		old.weight = new_weight
-		_shift_up(old.idx)
-
 
 func _shift_up(idx: int) -> void:
 	while idx > 0:
-		var parent_i: int = _get_parent(idx)
-		if _higher_priority(heap[idx], heap[parent_i]):
-			_swap(idx, parent_i)
+		var parent_i: int = (idx - 1) / 2
+		if heap[idx].weight < heap[parent_i].weight:
+			var temp: Vert = heap[idx]
+			heap[idx] = heap[parent_i]
+			heap[parent_i] = temp
+			heap[idx].idx = idx
+			heap[parent_i].idx = parent_i
+
 			idx = parent_i
-		else: return
+		else:
+			return
 
 
 func _shift_down(idx: int) -> void:
-	var smallest: int = idx
-	var size = heap.size()
-
+	var size: int = heap.size()
+	
 	while true:
-		var left: int = _get_left_child(idx)
-		var right: int = _get_right_child(idx)
+		var smallest: int = idx
+		var smallest_weight: float = heap[idx].weight
 
-		if left < size and _higher_priority(heap[left], heap[smallest]): smallest = left
-		if right < size and _higher_priority(heap[right], heap[smallest]): smallest = right
+		var left: int = 2 * idx + 1
+		var right: int = 2 * idx + 2
+
+		if left < size and heap[left].weight < smallest_weight:
+			smallest = left
+			smallest_weight = heap[left].weight
+		
+		if right < size and heap[right].weight < smallest_weight:
+			smallest = right
+			smallest_weight = heap[right].weight
 
 		if smallest != idx:
-			_swap(smallest, idx)
+			var temp: Vert = heap[smallest]
+			heap[smallest] = heap[idx]
+			heap[idx] = temp
+			heap[smallest].idx = smallest
+			heap[idx].idx = idx
+
 			idx = smallest
-		else: return
-
-func _get_parent(idx: int) -> int:
-	return floori((idx - 1) / 2.0)
-
-func _get_left_child(idx: int) -> int:
-	return 2 * idx + 1
-
-func _get_right_child(idx: int) -> int:
-	return 2 * idx + 2
-
-func _higher_priority(l: Vert, r: Vert) -> bool:
-	return l.weight < r.weight
-
-func _swap(l: int, r: int) -> void:
-	var temp = heap[l]
-	heap[l] = heap[r]
-	heap[r] = temp
-	heap[l].idx = l
-	heap[r].idx = r
+		else:
+			return

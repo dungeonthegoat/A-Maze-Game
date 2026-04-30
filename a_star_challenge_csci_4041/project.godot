@@ -25,6 +25,7 @@ SignalBus="*uid://t13ghe7d8rdf"
 
 [debug]
 
+gdscript/warnings/untyped_declaration=2
 gdscript/warnings/narrowing_conversion=0
 
 [display]
