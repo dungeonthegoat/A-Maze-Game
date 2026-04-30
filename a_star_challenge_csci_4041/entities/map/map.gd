@@ -51,7 +51,7 @@ func display_edges(edges: Array[Edge]) -> void:
 ## Generates a procedural maze that is ready for pathfinding
 func generate_maze(seed: int, num_keys: int) -> void:
 	# 1. Generate a grid graph of the desired resolution
-	var grid_graph: Grid.GridGraph = Grid.GridGraph.new(resolution, seed)
+	var grid_graph: Grid.GridGraph = Grid.GridGraph.new(resolution)
 
 	# 2. Display the edges and update the physical tile map 
 	var maze: Array[Edge] = Grid.find_minimum_spanning_edges(grid_graph.vertices, grid_graph.edges, perfect_maze)
@@ -82,6 +82,8 @@ func _spawn_entities(maze: Array[Edge]) -> void:
 	_current_player.grid_pos = maze[0].from * 2 - offset
 	_current_player.position = map_to_local(_current_player.grid_pos)
 	camera.player = _current_player
+	if camera.follow_player:
+		camera.position = map_to_local(_current_player.grid_pos)
 
 	# Spawn enemy
 	if _current_enemy:

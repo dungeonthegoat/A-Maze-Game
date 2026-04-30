@@ -30,8 +30,6 @@ stream_2/stream = ExtResource("5_61ikd")
 z_index = 2
 texture = SubResource("AtlasTexture_1bvp3")
 script = ExtResource("2_b4nis")
-move_tick_sec = 0.1
-move_chance = 0.75
 
 [node name="PointLight2D" type="PointLight2D" parent="." unique_id=1070151898]
 visible = false
@@ -42,7 +40,7 @@ texture = SubResource("GradientTexture2D_pqhw6")
 
 [node name="FootstepsSounds" type="AudioStreamPlayer2D" parent="." unique_id=1298112593]
 stream = SubResource("AudioStreamRandomizer_721x4")
-max_distance = 150.0
-attenuation = 3.732131
+max_distance = 100.0
+attenuation = 3.0
 max_polyphony = 5
 bus = &"Ambient"

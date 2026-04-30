@@ -35,9 +35,8 @@ texture = SubResource("AtlasTexture_0xm2m")
 script = ExtResource("2_e4p34")
 
 [node name="PlayerLight" type="PointLight2D" parent="." unique_id=213265205]
-visible = false
 color = Color(0.33999997, 0.7250001, 1, 1)
-energy = 0.5
+energy = 0.4
 shadow_enabled = true
 texture = SubResource("GradientTexture2D_e4p34")
 

@@ -78,7 +78,7 @@ func _move() -> void:
 	if randf() > move_chance or SignalBus.is_game_over:
 		return
 
-	var path: Array[Vector2i] = AStar.pathfind(grid_pos, player.grid_pos, map, 2.0)
+	var path: Array[Vector2i] = AStar.pathfind(grid_pos, player.grid_pos, map, 1.0)
 	if path.size() <= 1:
 		SignalBus.end_game()
 		return

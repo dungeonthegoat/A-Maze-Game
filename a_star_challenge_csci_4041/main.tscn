@@ -176,14 +176,14 @@ _data = {
 &"collect": SubResource("Animation_kek77")
 }
 
-[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_h2yge"]
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_5vw27"]
 polygon = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0xm2m"]
 texture = ExtResource("1_ig7tw")
 0:0/0 = 0
 1:0/0 = 0
-1:0/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_h2yge")
+1:0/0/occlusion_layer_0/polygon_0/polygon = SubResource("OccluderPolygon2D_5vw27")
 
 [sub_resource type="TileSet" id="TileSet_h2yge"]
 occlusion_layer_0/light_mask = 1
@@ -198,11 +198,12 @@ glow_bloom = 0.06
 [node name="Main" type="Node2D" unique_id=1050225579 node_paths=PackedStringArray("map")]
 script = ExtResource("1_lquwl")
 keys_required = 3
-map_size = Vector2i(12, 12)
+map_size = Vector2i(64, 64)
 map = NodePath("Map")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=417070095]
-color = Color(0.10975782, 0.116737925, 0.2039792, 1)
+visible = false
+color = Color(0, 0, 0, 1)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=395506496]
 
@@ -275,7 +276,7 @@ libraries/ = SubResource("AnimationLibrary_4c57u")
 
 [node name="PlayerCamera" type="Camera2D" parent="." unique_id=209801157]
 unique_name_in_owner = true
-zoom = Vector2(3, 3)
+zoom = Vector2(0.6, 0.6)
 script = ExtResource("1_h2yge")
 
 [node name="Map" type="TileMapLayer" parent="." unique_id=1622251131]

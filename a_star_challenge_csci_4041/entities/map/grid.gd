@@ -23,7 +23,9 @@ static func find_minimum_spanning_edges(vertices: Array[Vector2i], edges: Array[
 		adj_edges[edge.from].append(edge)
 		adj_edges[edge.to].append(edge)
 
+	# Pick the starting vertex (either randomly or a specific index like [0])
 	var start_vert: Vector2i = vertices.pick_random()
+	# var start_vert: Vector2i = vertices[0]
 	cheapest_cost.insert(MinHeap.Vert.new(start_vert, 0))
 
 	var current_vert: Vector2i
@@ -83,12 +85,12 @@ static func find_minimum_spanning_edges(vertices: Array[Vector2i], edges: Array[
 
 
 class GridGraph:
+	static var n: int = 0
+
 	var vertices: Array[Vector2i]
 	var edges: Array[Edge]
 
-	func _init(resolution: Vector2i, seed: int) -> void:
-		var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-		rng.seed = seed
+	func _init(resolution: Vector2i) -> void:
 		# Since the lattice grid is spaced out, we space out the resolution
 		# to account for this
 		var scaled_resolution: Vector2i = (resolution - Vector2i.ONE) / 2
@@ -103,6 +105,15 @@ class GridGraph:
 
 				# Construct the edges to the top and left of the current vertex if possible
 				if temp_verts.has(Vector2i(x - 1, y)):
-					edges.append(Edge.new(Vector2i(x, y), Vector2i(x - 1, y), rng.randf()))
+					# edges.append(Edge.new(Vector2i(x, y), Vector2i(x - 1, y), _get_specialized_edge_weight(x, y)))
+					edges.append(Edge.new(Vector2i(x, y), Vector2i(x - 1, y), _get_random_egde_weight()))
 				if temp_verts.has(Vector2i(x, y - 1)):
-					edges.append(Edge.new(Vector2i(x, y), Vector2i(x, y - 1), rng.randf()))
+					# edges.append(Edge.new(Vector2i(x, y), Vector2i(x, y - 1), _get_specialized_edge_weight(x, y)))
+					edges.append(Edge.new(Vector2i(x, y), Vector2i(x, y - 1), _get_random_egde_weight()))
+
+	static func _get_specialized_edge_weight(x: int, y: int) -> float:
+		n += 1
+		return n
+
+	static func _get_random_egde_weight() -> float:
+		return randf()
