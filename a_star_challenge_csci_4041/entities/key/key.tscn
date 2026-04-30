@@ -190,7 +190,7 @@ texture = SubResource("AtlasTexture_li0q2")
 unique_name_in_owner = true
 shadow_enabled = true
 texture = SubResource("GradientTexture2D_b860a")
-texture_scale = 1.5
+texture_scale = 4.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=847148276]
 libraries/ = SubResource("AnimationLibrary_yymwm")

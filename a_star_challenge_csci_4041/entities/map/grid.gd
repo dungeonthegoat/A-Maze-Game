@@ -61,7 +61,7 @@ static func find_minimum_spanning_edges(vertices: Array[Vector2i], edges: Array[
 			if not used_edges.has(edge):
 				extra_edges.append(edge)
 
-		var num_loops: int = edges.size() / 20
+		var num_loops: int = maxi(1, edges.size() / 20)
 		extra_edges.shuffle()
 		for i in range(num_loops):
 			if extra_edges.is_empty(): break

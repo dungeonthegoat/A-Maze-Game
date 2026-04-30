@@ -8,11 +8,11 @@ const KEY: PackedScene = preload("uid://c5vy355ik3o2a")
 
 
 @export_group("Config")
-@export var resolution: Vector2i = Vector2i(36, 20)
 @export var debug: bool = false
 @export var perfect_maze: bool = false
 
 var neighbor_map: Dictionary[Vector2i, Array] = {}
+var resolution: Vector2i = Vector2i(36, 20)
 var _current_player: Player
 var _current_enemy: Enemy
 

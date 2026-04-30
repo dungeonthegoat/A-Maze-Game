@@ -140,6 +140,42 @@ region = Rect2(0, 0, 16, 16)
 font = ExtResource("4_272bh")
 font_size = 32
 
+[sub_resource type="Animation" id="Animation_5vw27"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MarginContainer/HBoxContainer:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0.6039216)]
+}
+
+[sub_resource type="Animation" id="Animation_kek77"]
+resource_name = "collect"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MarginContainer/HBoxContainer:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.13333334, 1),
+"transitions": PackedFloat32Array(0.16493858, 0.5000002, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0.6039216), Color(0.41000003, 1, 0.43949997, 1), Color(1, 1, 1, 0.6039216)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_4c57u"]
+_data = {
+&"RESET": SubResource("Animation_5vw27"),
+&"collect": SubResource("Animation_kek77")
+}
+
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_h2yge"]
 polygon = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 
@@ -161,13 +197,12 @@ glow_bloom = 0.06
 
 [node name="Main" type="Node2D" unique_id=1050225579 node_paths=PackedStringArray("map")]
 script = ExtResource("1_lquwl")
-keys_required = 1
-map_size = Vector2i(200, 200)
+keys_required = 3
+map_size = Vector2i(12, 12)
 map = NodePath("Map")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=417070095]
-visible = false
-color = Color(0, 0, 0, 1)
+color = Color(0.10975782, 0.116737925, 0.2039792, 1)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=395506496]
 
@@ -234,15 +269,18 @@ label_settings = SubResource("LabelSettings_5vw27")
 vertical_alignment = 1
 script = ExtResource("6_kek77")
 
+[node name="KeyAnimation" type="AnimationPlayer" parent="CanvasLayer/MarginContainer/HBoxContainer/KeyLabel" unique_id=1765427260]
+root_node = NodePath("../../../..")
+libraries/ = SubResource("AnimationLibrary_4c57u")
+
 [node name="PlayerCamera" type="Camera2D" parent="." unique_id=209801157]
 unique_name_in_owner = true
-zoom = Vector2(0.33, 0.33)
+zoom = Vector2(3, 3)
 script = ExtResource("1_h2yge")
 
 [node name="Map" type="TileMapLayer" parent="." unique_id=1622251131]
 tile_set = SubResource("TileSet_h2yge")
 script = ExtResource("2_1bvp3")
-resolution = Vector2i(32, 32)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1370816940]
 environment = SubResource("Environment_h2yge")
