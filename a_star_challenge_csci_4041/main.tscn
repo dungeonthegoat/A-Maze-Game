@@ -162,10 +162,11 @@ glow_bloom = 0.06
 [node name="Main" type="Node2D" unique_id=1050225579 node_paths=PackedStringArray("map")]
 script = ExtResource("1_lquwl")
 keys_required = 1
-map_size = Vector2i(64, 64)
+map_size = Vector2i(200, 200)
 map = NodePath("Map")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=417070095]
+visible = false
 color = Color(0, 0, 0, 1)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=395506496]
@@ -235,7 +236,7 @@ script = ExtResource("6_kek77")
 
 [node name="PlayerCamera" type="Camera2D" parent="." unique_id=209801157]
 unique_name_in_owner = true
-zoom = Vector2(3, 3)
+zoom = Vector2(0.33, 0.33)
 script = ExtResource("1_h2yge")
 
 [node name="Map" type="TileMapLayer" parent="." unique_id=1622251131]

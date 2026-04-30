@@ -30,9 +30,8 @@ stream_2/stream = ExtResource("5_61ikd")
 z_index = 2
 texture = SubResource("AtlasTexture_1bvp3")
 script = ExtResource("2_b4nis")
-independent_movement = true
-move_tick_sec = 0.05
-move_chance = 0.1
+move_tick_sec = 0.5
+move_chance = 1.0
 
 [node name="PointLight2D" type="PointLight2D" parent="." unique_id=1070151898]
 visible = false

@@ -3,7 +3,7 @@ extends RefCounted
 
 
 ## Returns an array dictating the path of cells to take to get from start to goal
-static func pathfind(start: Vector2i, goal: Vector2i, map: Map) -> Array[Vector2i]:
+static func pathfind(start: Vector2i, goal: Vector2i, map: Map, greediness: float = 1.0) -> Array[Vector2i]:
 	var open_cells: CellHeap = CellHeap.new().insert(Cell.new(start, 0, absi(start.x - goal.x) + absi(start.y - goal.y), null))
 	var closed_positions: Dictionary = {}
 	var current: Cell
@@ -19,14 +19,20 @@ static func pathfind(start: Vector2i, goal: Vector2i, map: Map) -> Array[Vector2
 		for neighbor_pos: Vector2i in map.neighbor_map[current.pos]:
 			if closed_positions.has(neighbor_pos): continue
 
-			var g: int = current.g_cost + 1
-			var h: int = absi(neighbor_pos.x - goal.x) + absi(neighbor_pos.y - goal.y)
-			var neighbor_cell: Cell = Cell.new(neighbor_pos, g, h, current)
+			var g: float = current.g_cost + 1
+			var h: float = (absf(neighbor_pos.x - goal.x) + absf(neighbor_pos.y - goal.y)) * greediness
 
-			if open_cells.map.has(neighbor_pos):
-				open_cells.update_cell(neighbor_cell)
+			# Check if there already exists the neighbor in the open cells
+			var existing_cell: Cell = open_cells.map.get(neighbor_pos)
+
+			if existing_cell:
+				if g < existing_cell.g_cost:
+					existing_cell.g_cost = g
+					existing_cell.f_cost = g + h
+					existing_cell.prev = current
+					open_cells._shift_up(existing_cell.heap_idx)
 			else:
-				open_cells.insert(neighbor_cell)
+				open_cells.insert(Cell.new(neighbor_pos, g, h, current))
 
 	return []
 
@@ -49,11 +55,11 @@ class Cell:
 	var pos: Vector2i
 	var heap_idx: int
 
-	var f_cost: int
-	var h_cost: int
-	var g_cost: int
+	var f_cost: float
+	var h_cost: float
+	var g_cost: float
 
-	func _init(new_pos: Vector2i, g: int, h: int, prev_cell: Cell) -> void:
+	func _init(new_pos: Vector2i, g: float, h: float, prev_cell: Cell) -> void:
 		pos = new_pos
 		prev = prev_cell
 
@@ -91,60 +97,59 @@ class CellHeap:
 			_shift_down(0)
 		
 		return root
-
-	## Attempts to replace a cell in the heap with another cell (at the same 
-	## position) with a better g_cost
-	func update_cell(new: Cell) -> void:
-		var old: Cell = map[new.pos]
-		if old and new.g_cost < old.g_cost:
-			old.g_cost = new.g_cost
-			old.f_cost = new.f_cost
-			old.prev = new.prev
-			# Since the new cell is guaranteed to have a higher f_cost,
-			# you only have to worry about shifting it up
-			_shift_up(old.heap_idx)
+	
 
 	func _shift_up(idx: int) -> void:
 		while idx > 0:
-			var parent_i: int = _get_parent(idx)
-			if _higher_priority(heap[idx], heap[parent_i]):
-				_swap(idx, parent_i)
-				idx = parent_i
-			else: return
+			var parent_i: int = (idx - 1) / 2
 			
+			var curr_f: int = heap[idx].f_cost
+			var curr_h: int = heap[idx].h_cost
+			var par_f: int = heap[parent_i].f_cost
+			var par_h: int = heap[parent_i].h_cost
+			
+			if curr_f < par_f or (curr_f == par_f and curr_h < par_h):
+				var temp: Cell = heap[idx]
+				heap[idx] = heap[parent_i]
+				heap[parent_i] = temp
+				heap[idx].heap_idx = idx
+				heap[parent_i].heap_idx = parent_i
+				idx = parent_i
+			else: 
+				return
+	
 	func _shift_down(idx: int) -> void:
-		var smallest: int = idx
 		var size: int = heap.size()
 
 		while true:
-			var left: int = _get_left_child(idx)
-			var right: int = _get_right_child(idx)
+			var smallest: int = idx
+			var left: int = 2 * idx + 1
+			var right: int = left + 1
+			
+			var s_f: int = heap[smallest].f_cost
+			var s_h: int = heap[smallest].h_cost
 
-			if left < size and _higher_priority(heap[left], heap[smallest]): smallest = left
-			if right < size and _higher_priority(heap[right], heap[smallest]): smallest = right
+			if left < size:
+				var l_f: int = heap[left].f_cost
+				if l_f < s_f or (l_f == s_f and heap[left].h_cost < s_h): # If f_costs are the same, compare h_costs
+					# If the left child exists and is smaller, mark it as the smallest node
+					smallest = left
+					s_f = l_f
+					s_h = heap[left].h_cost
 
+			if right < size:
+				var r_f: int = heap[right].f_cost
+				if r_f < s_f or (r_f == s_f and heap[right].h_cost < s_h): # If f_costs are the same, compare h_costs
+					# If the right child exists and is smaller, mark it as the smallest node
+					smallest = right
+
+			# If there was a smaller node, swap with it. Otherwise, you are done
 			if smallest != idx:
-				_swap(smallest, idx)
+				var temp: Cell = heap[smallest]
+				heap[smallest] = heap[idx]
+				heap[idx] = temp
+				heap[smallest].heap_idx = smallest
+				heap[idx].heap_idx = idx
 				idx = smallest
-			else: return
-
-	func _get_parent(idx: int) -> int:
-		return floori((idx - 1) / 2.0)
-
-	func _get_left_child(idx: int) -> int:
-		return 2 * idx + 1
-	
-	func _get_right_child(idx: int) -> int:
-		return 2 * idx + 2
-	
-	func _higher_priority(l: Cell, r: Cell) -> bool:
-		if l.f_cost == r.f_cost:
-			return l.h_cost < r.h_cost
-		return l.f_cost < r.f_cost
-
-	func _swap(l: int, r: int) -> void:
-		var temp: Cell = heap[l]
-		heap[l] = heap[r]
-		heap[r] = temp
-		heap[l].heap_idx = l
-		heap[r].heap_idx = r
+			else: 
+				return
