@@ -3,13 +3,15 @@ extends Sprite2D
 
 const PATH_LINE: PackedScene = preload("uid://k0qw3ewluo02")
 
-## When true, the enemy will move based on a tick rate instead of when the player moves
+## When true, the enemy will move based on a tick rate instead of syncing with when the player moves
 @export var independent_movement: bool = false
-## The time (in seconds) between each movement when independent
+## The time (in seconds) between each movement when using independent movement
 @export var move_tick_sec: float = 0.25
-## Whether or not the line of the path to the player is visible
+## Makes the calculated path from the enemy to the player visible
 @export var line_visible: bool = false
 ## The interval (every x times) at which the enemy moves when the player does
+## For example, if move_interval is 2, then the enemy moves with every other
+## player movement.
 @export var move_interval: int = 1
 ## The probability the enemy will move when attempting to, regardless of its movement type
 @export var move_chance: float = 0.9

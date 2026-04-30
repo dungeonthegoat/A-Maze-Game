@@ -161,11 +161,12 @@ glow_bloom = 0.06
 
 [node name="Main" type="Node2D" unique_id=1050225579 node_paths=PackedStringArray("map")]
 script = ExtResource("1_lquwl")
-keys_required = 10
+keys_required = 1
+map_size = Vector2i(64, 64)
 map = NodePath("Map")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=417070095]
-color = Color(0.123549975, 0.14827803, 0.2469418, 1)
+color = Color(0, 0, 0, 1)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=395506496]
 
@@ -240,7 +241,7 @@ script = ExtResource("1_h2yge")
 [node name="Map" type="TileMapLayer" parent="." unique_id=1622251131]
 tile_set = SubResource("TileSet_h2yge")
 script = ExtResource("2_1bvp3")
-resolution = Vector2i(64, 64)
+resolution = Vector2i(32, 32)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1370816940]
 environment = SubResource("Environment_h2yge")
