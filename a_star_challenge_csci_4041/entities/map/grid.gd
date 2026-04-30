@@ -6,38 +6,37 @@ extends RefCounted
 ## returns the tree as an array of edges
 static func find_minimum_spanning_edges(vertices: Array[Vector2i], edges: Array[Edge], make_perfect: bool = false) -> Array[Edge]:
 	# Initialize the cheapest cost and edge dictionaries
-	var cheapest_cost: Dictionary[Vector2i, float]
+	var cheapest_cost: MinHeap = MinHeap.new()
 	var cheapest_edge: Dictionary[Vector2i, Edge]
+
+	var explored: Dictionary[Vector2i, bool] = {}
 
 	# Store all of the adjacent edges
 	var adj_edges: Dictionary[Vector2i, Array] = {}
 
 	for vertex in vertices:
-		cheapest_cost[vertex] = INF
+		cheapest_cost.insert(MinHeap.Vert.new(vertex, INF))
 		adj_edges[vertex] = []
+		explored[vertex] = false
 	
 	for edge in edges:
 		adj_edges[edge.from].append(edge)
 		adj_edges[edge.to].append(edge)
 
-	var explored = []
-	var unexplored = vertices.duplicate_deep()
-
 	var start_vert = vertices.pick_random()
-	cheapest_cost[start_vert] = 0
+	cheapest_cost.insert(MinHeap.Vert.new(start_vert, 0))
 
 	var current_vert: Vector2i
 
-	while not unexplored.is_empty():
-		current_vert = _get_cheapest_cost_vertex(cheapest_cost, unexplored)
-		unexplored.erase(current_vert)
-		explored.append(current_vert)
+	while not cheapest_cost.is_empty():
+		current_vert = cheapest_cost.pop().position
+		explored[current_vert] = true
 
 		for edge in adj_edges[current_vert]:
 			var neighbor: Vector2i = edge.from if edge.from != current_vert else edge.to
 			
-			if unexplored.has(neighbor) and edge.weight < cheapest_cost[neighbor]:
-				cheapest_cost[neighbor] = edge.weight
+			if not explored[neighbor] and edge.weight < cheapest_cost.get_weight(neighbor):
+				cheapest_cost.update_weight(neighbor, edge.weight)
 				cheapest_edge[neighbor] = edge
 
 	var result_edges: Array[Edge] = []
@@ -59,16 +58,16 @@ static func find_minimum_spanning_edges(vertices: Array[Vector2i], edges: Array[
 	return result_edges
 
 
-static func _get_cheapest_cost_vertex(costs: Dictionary[Vector2i, float], unexplored: Array[Vector2i]) -> Vector2i:
-	var cheapest_cost: float = INF
-	var cheapest_vert: Vector2i
+# static func _get_cheapest_cost_vertex(costs: Dictionary[Vector2i, float], unexplored: Array[Vector2i]) -> Vector2i:
+# 	var cheapest_cost: float = INF
+# 	var cheapest_vert: Vector2i
 
-	for vertex in unexplored:
-		if costs[vertex] < cheapest_cost:
-			cheapest_cost = costs[vertex]
-			cheapest_vert = vertex
+# 	for vertex in unexplored:
+# 		if costs[vertex] < cheapest_cost:
+# 			cheapest_cost = costs[vertex]
+# 			cheapest_vert = vertex
 	
-	return cheapest_vert
+# 	return cheapest_vert
 
 
 class GridGraph:
