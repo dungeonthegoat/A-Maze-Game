@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://cidtv8w4mv6nh"]
+
+[ext_resource type="Texture2D" uid="uid://cfsk3owhpu6f0" path="res://entities/game_sprites.png" id="1_pqhw6"]
+[ext_resource type="Script" uid="uid://b02np4obs8wwj" path="res://entities/enemy/enemy.gd" id="2_b4nis"]
+[ext_resource type="AudioStream" uid="uid://dqdbxn12dl4rs" path="res://entities/enemy/sounds/footsteps/enemy_footsteps_1.wav" id="3_4wwj3"]
+[ext_resource type="AudioStream" uid="uid://bebirjwyimd5v" path="res://entities/enemy/sounds/footsteps/enemy_footsteps_2.wav" id="4_d50e0"]
+[ext_resource type="AudioStream" uid="uid://byxhtie0r8wii" path="res://entities/enemy/sounds/footsteps/enemy_footsteps_3.wav" id="5_61ikd"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1bvp3"]
+atlas = ExtResource("1_pqhw6")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="Gradient" id="Gradient_b0kkn"]
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_pqhw6"]
+gradient = SubResource("Gradient_b0kkn")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_721x4"]
+random_pitch = 1.0594631
+streams_count = 3
+stream_0/stream = ExtResource("3_4wwj3")
+stream_1/stream = ExtResource("4_d50e0")
+stream_2/stream = ExtResource("5_61ikd")
+
+[node name="Enemy" type="Sprite2D" unique_id=627184935]
+z_index = 2
+texture = SubResource("AtlasTexture_1bvp3")
+script = ExtResource("2_b4nis")
+independent_movement = true
+move_tick_sec = 0.05
+move_chance = 0.15
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=1070151898]
+visible = false
+color = Color(1, 0.33999997, 0.35099983, 1)
+energy = 0.6
+shadow_enabled = true
+texture = SubResource("GradientTexture2D_pqhw6")
+
+[node name="FootstepsSounds" type="AudioStreamPlayer2D" parent="." unique_id=1298112593]
+stream = SubResource("AudioStreamRandomizer_721x4")
+max_distance = 311.0
+attenuation = 3.732131
+max_polyphony = 5
+bus = &"Ambient"

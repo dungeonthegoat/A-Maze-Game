@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://ceu354p11d0if"]
+
+[ext_resource type="Texture2D" uid="uid://cfsk3owhpu6f0" path="res://entities/game_sprites.png" id="1_b0kkn"]
+[ext_resource type="Script" uid="uid://bmucmcsls844w" path="res://entities/player/player.gd" id="2_e4p34"]
+[ext_resource type="AudioStream" uid="uid://bpydoxvp5lxuy" path="res://entities/player/sounds/footsteps/footsteps_1.wav" id="3_fkugw"]
+[ext_resource type="AudioStream" uid="uid://c8e2qe1kmntnd" path="res://entities/player/sounds/footsteps/footsteps_3.wav" id="4_8fjmc"]
+[ext_resource type="AudioStream" uid="uid://tnkdnycuicdy" path="res://entities/player/sounds/footsteps/footsteps_2.wav" id="5_qiwj3"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0xm2m"]
+atlas = ExtResource("1_b0kkn")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="Gradient" id="Gradient_b0kkn"]
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_e4p34"]
+gradient = SubResource("Gradient_b0kkn")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_abrql"]
+random_pitch = 1.0594631
+streams_count = 3
+stream_0/stream = ExtResource("3_fkugw")
+stream_1/stream = ExtResource("4_8fjmc")
+stream_2/stream = ExtResource("5_qiwj3")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fkugw"]
+size = Vector2(16, 16)
+
+[node name="Player" type="Sprite2D" unique_id=1227592828]
+z_index = 2
+texture = SubResource("AtlasTexture_0xm2m")
+script = ExtResource("2_e4p34")
+
+[node name="PlayerLight" type="PointLight2D" parent="." unique_id=213265205]
+visible = false
+color = Color(0.33999997, 0.7250001, 1, 1)
+energy = 0.5
+shadow_enabled = true
+texture = SubResource("GradientTexture2D_e4p34")
+
+[node name="VisibilityLight" type="PointLight2D" parent="." unique_id=494162960]
+energy = 0.75
+shadow_enabled = true
+texture = SubResource("GradientTexture2D_e4p34")
+texture_scale = 5.0
+
+[node name="FootstepsSounds" type="AudioStreamPlayer2D" parent="." unique_id=319548315]
+stream = SubResource("AudioStreamRandomizer_abrql")
+volume_db = -4.0
+max_polyphony = 5
+bus = &"Ambient"
+
+[node name="Area2D" type="Area2D" parent="." unique_id=320347334]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=648946819]
+shape = SubResource("RectangleShape2D_fkugw")

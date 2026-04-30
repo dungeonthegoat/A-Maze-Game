@@ -3,19 +3,28 @@ extends Sprite2D
 
 const PATH_LINE: PackedScene = preload("uid://k0qw3ewluo02")
 
+## When true, the enemy will move based on a tick rate instead of when the player moves
 @export var independent_movement: bool = false
+## The time (in seconds) between each movement when independent
 @export var move_tick_sec: float = 0.25
+## Whether or not the line of the path to the player is visible
 @export var line_visible: bool = false
+## The interval (every x times) at which the enemy moves when the player does
+@export var move_interval: int = 1
+## The probability the enemy will move when attempting to, regardless of its movement type
+@export var move_chance: float = 0.9
 
 @export_group("Nodes")
 @export var map: Map
 @export var player: Player
 
-var smoothing: float = 20.0
+var smoothing: float = 30.0
 var _target_pos: Vector2
 var _line: Line2D
+var _current_cycle: int = 0
 
 @onready var _move_timer: Timer = Timer.new()
+@onready var _footsteps_sounds: AudioStreamPlayer2D = $FootstepsSounds
 
 var grid_pos: Vector2i:
 	set(new):
@@ -52,21 +61,32 @@ func _timeout() -> void:
 
 
 func _player_moved(_new_pos: Vector2i) -> void:
+	if player.grid_pos == grid_pos:
+		SignalBus.end_game()
+		return
+
 	if independent_movement: return
+	_current_cycle = (_current_cycle + 1) % move_interval
+	if _current_cycle > 0: return
 	_move()
 	
 
+## Attempts to move the enemy towards the player
 func _move() -> void:
-	var path: Array[Vector2i] = map.pathfind(grid_pos, player.grid_pos)
+	if randf() > move_chance or SignalBus.is_game_over:
+		return
+
+	var path: Array[Vector2i] = AStar.pathfind(grid_pos, player.grid_pos, map)
 	if path.size() <= 1:
-		get_tree().reload_current_scene()
+		SignalBus.end_game()
 		return
 	
 	grid_pos = path[1]
 	_update_line(path)
+	_footsteps_sounds.play()
 
 	if player.grid_pos == grid_pos:
-		get_tree().reload_current_scene()
+		SignalBus.end_game()
 		return
 
 func _update_line(path: Array[Vector2i]) -> void:

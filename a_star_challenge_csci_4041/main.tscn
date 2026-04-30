@@ -1,11 +1,16 @@
-[gd_scene format=4 uid="uid://c4q87vvihwthr"]
+[gd_scene format=3 uid="uid://c4q87vvihwthr"]
 
-[ext_resource type="Script" uid="uid://b7euxrd4xv1qs" path="res://player_camera.gd" id="1_h2yge"]
-[ext_resource type="Texture2D" uid="uid://cfsk3owhpu6f0" path="res://sprites/game_sprites.png" id="1_ig7tw"]
-[ext_resource type="Script" uid="uid://cp2libx2o85km" path="res://map.gd" id="2_1bvp3"]
+[ext_resource type="Script" uid="uid://b7euxrd4xv1qs" path="res://entities/player/player_camera.gd" id="1_h2yge"]
+[ext_resource type="Texture2D" uid="uid://cfsk3owhpu6f0" path="res://entities/game_sprites.png" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://cusotysjucmfr" path="res://main.gd" id="1_lquwl"]
+[ext_resource type="Script" uid="uid://cp2libx2o85km" path="res://entities/map/map.gd" id="2_1bvp3"]
+[ext_resource type="AudioStream" uid="uid://da4bykwrfejak" path="res://entities/enemy/sounds/capture.wav" id="2_lquwl"]
+[ext_resource type="Texture2D" uid="uid://diojsb8j8nqng" path="res://entities/key/key.png" id="4_5vw27"]
+[ext_resource type="FontFile" uid="uid://dmkvgi8ifxdgx" path="res://gui/ari-w9500.ttf" id="4_272bh"]
+[ext_resource type="Script" uid="uid://dva0888t7l027" path="res://gui/key_label.gd" id="6_kek77"]
 
 [sub_resource type="Gradient" id="Gradient_h2yge"]
-colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0.44705883)
+colors = PackedColorArray(0, 0, 0, 0, 1, 1, 1, 0.42745098)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_1bvp3"]
 gradient = SubResource("Gradient_h2yge")
@@ -13,6 +18,127 @@ width = 512
 height = 512
 fill = 1
 fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h2yge"]
+atlas = ExtResource("1_ig7tw")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="Animation" id="Animation_h2yge"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Vignette:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0, 0, 0, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Face:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(568, 853)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Face:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(30, 30)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("JumpscareAudio:playing")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_1bvp3"]
+resource_name = "jumpscare"
+length = 1.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Vignette:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.36666667),
+"transitions": PackedFloat32Array(0.10153171, 1),
+"update": 0,
+"values": [Color(0, 0, 0, 1), Color(0.37, 0, 0.0061665727, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Face:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.37),
+"transitions": PackedFloat32Array(0.17677675, 1),
+"update": 0,
+"values": [Vector2(568, 853), Vector2(568, 352)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Face:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.37),
+"transitions": PackedFloat32Array(0.17677675, 1),
+"update": 0,
+"values": [Vector2(30, 30), Vector2(50, 50)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("JumpscareAudio:playing")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_lquwl"]
+_data = {
+&"RESET": SubResource("Animation_h2yge"),
+&"jumpscare": SubResource("Animation_1bvp3")
+}
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kek77"]
+atlas = ExtResource("4_5vw27")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="LabelSettings" id="LabelSettings_5vw27"]
+font = ExtResource("4_272bh")
+font_size = 32
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_h2yge"]
 polygon = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
@@ -33,14 +159,18 @@ glow_enabled = true
 glow_intensity = 5.0
 glow_bloom = 0.06
 
-[node name="Main" type="Node2D" unique_id=1050225579]
+[node name="Main" type="Node2D" unique_id=1050225579 node_paths=PackedStringArray("map")]
+script = ExtResource("1_lquwl")
+keys_required = 10
+map = NodePath("Map")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=417070095]
-color = Color(0.2907391, 0.30217603, 0.40352032, 1)
+color = Color(0.123549975, 0.14827803, 0.2469418, 1)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=395506496]
 
-[node name="TextureRect" type="TextureRect" parent="CanvasLayer" unique_id=1642056682]
+[node name="Vignette" type="TextureRect" parent="CanvasLayer" unique_id=1642056682]
+self_modulate = Color(0, 0, 0, 1)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -48,16 +178,80 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("GradientTexture2D_1bvp3")
 
+[node name="Face" type="TextureRect" parent="CanvasLayer" unique_id=494307107]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = 533.0
+offset_right = 8.0
+offset_bottom = 549.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(30, 30)
+pivot_offset = Vector2(8, 8)
+texture = SubResource("AtlasTexture_h2yge")
+
+[node name="JumpscareAnimation" type="AnimationPlayer" parent="CanvasLayer" unique_id=583181060]
+unique_name_in_owner = true
+libraries/ = SubResource("AnimationLibrary_lquwl")
+
+[node name="JumpscareAudio" type="AudioStreamPlayer" parent="CanvasLayer" unique_id=703806068]
+stream = ExtResource("2_lquwl")
+volume_db = -4.0
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer" unique_id=2067945527]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -65.5
+offset_right = 65.5
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MarginContainer" unique_id=676836356]
+modulate = Color(1, 1, 1, 0.6039216)
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/MarginContainer/HBoxContainer" unique_id=1265209157]
+layout_mode = 2
+texture = SubResource("AtlasTexture_kek77")
+expand_mode = 2
+
+[node name="KeyLabel" type="Label" parent="CanvasLayer/MarginContainer/HBoxContainer" unique_id=1524768551]
+layout_mode = 2
+size_flags_vertical = 1
+text = "0/5"
+label_settings = SubResource("LabelSettings_5vw27")
+vertical_alignment = 1
+script = ExtResource("6_kek77")
+
 [node name="PlayerCamera" type="Camera2D" parent="." unique_id=209801157]
 unique_name_in_owner = true
 zoom = Vector2(3, 3)
 script = ExtResource("1_h2yge")
 
 [node name="Map" type="TileMapLayer" parent="." unique_id=1622251131]
-tile_map_data = PackedByteArray("AAD9////AAAAAAAAAAD9/wAAAAAAAAAAAAD8/wAAAAAAAAAAAAD8////AAABAAAAAAD8//7/AAAAAAAAAAD9//7/AAAAAAAAAAD6//3/AAABAAAAAAD6//7/AAABAAAAAAD6////AAABAAAAAAD6/wAAAAABAAAAAAD6/wEAAAABAAAAAAD7//3/AAABAAAAAAD7//7/AAAAAAAAAAD7////AAAAAAAAAAD7/wAAAAAAAAAAAAD7/wEAAAABAAAAAAD8//3/AAABAAAAAAD8/wEAAAABAAAAAAD9//3/AAABAAAAAAD9/wEAAAABAAAAAAD+//3/AAABAAAAAAD+//7/AAABAAAAAAD+////AAABAAAAAAD+/wAAAAABAAAAAAD+/wEAAAABAAAAAAA=")
 tile_set = SubResource("TileSet_h2yge")
 script = ExtResource("2_1bvp3")
-resolution = Vector2i(72, 40)
+resolution = Vector2i(64, 64)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1370816940]
 environment = SubResource("Environment_h2yge")
+
+[node name="Background" type="CanvasLayer" parent="." unique_id=29173924]
+layer = -1
+
+[node name="ColorRect" type="ColorRect" parent="Background" unique_id=97319874]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)

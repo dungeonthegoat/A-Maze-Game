@@ -1,0 +1,133 @@
+class_name Map
+extends TileMapLayer
+## A class that handles tiles and pathfinding
+
+const PLAYER: PackedScene = preload("uid://ceu354p11d0if")
+const ENEMY: PackedScene = preload("uid://cidtv8w4mv6nh")
+const KEY: PackedScene = preload("uid://c5vy355ik3o2a")
+
+
+@export_group("Config")
+@export var resolution: Vector2i = Vector2i(36, 20)
+@export var debug: bool = false
+@export var perfect_maze: bool = false
+
+var neighbor_map: Dictionary[Vector2i, Array] = {}
+var _current_player: Player
+var _current_enemy: Enemy
+
+@onready var camera = get_tree().current_scene.get_node("%PlayerCamera")
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not debug: return
+	if event.is_action_pressed("debug_map"):
+		get_tree().reload_current_scene()
+
+
+## Checks whether a given cell is valid to traverse on
+func is_cell_valid(coords: Vector2i) -> bool:
+	return get_cell_atlas_coords(coords) == Vector2i.ZERO
+
+
+## Updates the tile map to display a given grid graph
+func display_edges(edges: Array[Edge]) -> void:
+	# 1. Clear the existing tile map and replace it with all walls
+	# (make sure to fill beyond the screen so the camera can pan around)
+	clear()
+	for x in range(-resolution.x, resolution.x):
+		for y in range(-resolution.y, resolution.y):
+			set_cell(Vector2i(x, y), 0, Vector2i(1, 0))
+
+	var offset: Vector2i = resolution / 2 - Vector2i.ONE
+
+	# 2. Display the edges themselves
+	for edge in edges:
+		set_cell(edge.from * 2 - offset, 0, Vector2i.ZERO)
+		set_cell(edge.to * 2 - offset, 0, Vector2i.ZERO)
+		set_cell((edge.to + edge.from) - offset, 0, Vector2i.ZERO)
+
+
+## Generates a procedural maze that is ready for pathfinding
+func generate_maze(seed: int, num_keys: int) -> void:
+	# 1. Generate a grid graph of the desired resolution
+	var grid_graph: Grid.GridGraph = Grid.GridGraph.new(resolution, seed)
+
+	# 2. Display the edges and update the physical tile map 
+	var maze: Array[Edge] = Grid.find_minimum_spanning_edges(grid_graph.vertices, grid_graph.edges, perfect_maze)
+	display_edges(maze)
+
+	# 3. Update the neighbors dictionary to prepare for pathfinding
+	_init_neighbors()
+
+	# 4. Spawn in the player and enemy
+	_spawn_entities(maze)
+
+	# 5. Finally, spawn the keys in
+	_spawn_keys(maze, num_keys)
+
+
+
+## Spawns the player and enemies into the maze
+func _spawn_entities(maze: Array[Edge]) -> void:
+	# Spawn player
+	if _current_player:
+		_current_player.queue_free()
+	
+	_current_player = PLAYER.instantiate()
+	_current_player.map = self
+	add_child.call(_current_player)
+
+	var offset: Vector2i = resolution / 2 - Vector2i.ONE
+	_current_player.grid_pos = maze[0].from * 2 - offset
+	_current_player.position = map_to_local(_current_player.grid_pos)
+	camera.player = _current_player
+
+	# Spawn enemy
+	if _current_enemy:
+		_current_enemy.queue_free()
+	
+	_current_enemy = ENEMY.instantiate()
+	_current_enemy.map = self
+	add_child.call(_current_enemy)
+
+	_current_enemy.grid_pos = maze[-1].from * 2 - offset
+	_current_enemy.player = _current_player
+
+
+func _spawn_keys(maze: Array[Edge], key_count: int) -> void:
+	# Place all of the possible vertex locations (excluding player and enemy spawn
+	# points) into a dictionary which will later have its keys shuffled. A
+	# dictionary is used here because it makes checking for duplicates faster
+	var valid_positions: Dictionary
+	for idx in range(1, maze.size() - 2):
+		valid_positions[maze[idx].from] = true
+		valid_positions[maze[idx].to] = true
+	
+	# Shuffle the keys of the valid spawn locations
+	var spawn_points := valid_positions.keys().duplicate_deep()
+	spawn_points.shuffle()
+
+	# Spawn the keys
+	var offset: Vector2i = resolution / 2 - Vector2i.ONE
+
+	for _i in range(key_count):
+		if spawn_points.is_empty(): return # If there are fewer edges than keys, this is a problem
+
+		var spawn_pos: Vector2 = map_to_local(spawn_points.pop_back() * 2  - offset)
+		var key: MapKey = KEY.instantiate()
+		key.global_position = spawn_pos
+		add_child.call_deferred(key)
+
+
+## Initializes the neighbors of every cell into a dictionary to allow for faster cell-neighbor lookup
+func _init_neighbors():
+	neighbor_map.clear()
+
+	for pos in get_used_cells():
+		neighbor_map[pos] = []
+		var dirs: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+
+		for dir in dirs:
+			if not is_cell_valid(pos + dir): continue
+			neighbor_map[pos].append(pos + dir)
