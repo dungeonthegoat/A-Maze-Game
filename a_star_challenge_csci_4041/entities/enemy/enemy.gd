@@ -24,6 +24,9 @@ const PATH_LINE: PackedScene = preload("uid://k0qw3ewluo02")
 @export var min_switch_delay_sec: float = 10.0
 @export var max_switch_delay_sec: float = 30.0
 
+## Whether or not multiple enemies will actively avoid each others' paths
+@export var smart: bool = false
+
 ## Higher value = less precise but much faster
 @export_range(0.0, 2.0, 0.1, "or_greater") var heuristic_weight: float = 1.0
 
@@ -33,6 +36,8 @@ const PATH_LINE: PackedScene = preload("uid://k0qw3ewluo02")
 
 var _line: Line2D
 var _current_cycle: int = 0
+
+var current_path: Array[Vector2i]
 
 ## The timer that determines when to switch between dependent or independent
 @onready var _switch_timer: Timer = Timer.new()
@@ -47,6 +52,7 @@ func _ready() -> void:
 	_switch_timer.timeout.connect(_switch_timer_timeout)
 
 	_line = PATH_LINE.instantiate()
+	_line.self_modulate = Color.from_hsv(randf(), 1.0, 1.0)
 	get_tree().current_scene.add_child.call_deferred(_line)
 	_line.visible = line_visible
 
@@ -95,13 +101,16 @@ func _move() -> void:
 	if randf() > move_chance or Game.is_game_over:
 		return
 
-	var path: Array[Vector2i] = AStar.pathfind(grid_pos, player.grid_pos, map, heuristic_weight)
-	if path.size() <= move_distance:
+	var penalty_map: Dictionary[Vector2i, int] = {}
+	if smart:
+		penalty_map = map.get_penalty_map(self)
+	current_path = AStar.pathfind(grid_pos, player.grid_pos, map, heuristic_weight, penalty_map)
+	if current_path.size() <= move_distance:
 		Game.player_caught.emit()
 		return
 	
-	grid_pos = path[move_distance]
-	_update_line(path)
+	grid_pos = current_path[move_distance]
+	_update_line()
 	_footsteps_sounds.play()
 
 	if player.grid_pos == grid_pos:
@@ -109,10 +118,10 @@ func _move() -> void:
 		return
 
 
-func _update_line(path: Array[Vector2i]) -> void:
+func _update_line() -> void:
 	_line.clear_points()
-	for idx in range(1, path.size()):
-		_line.add_point(map.map_to_local(path[idx]))
+	for idx in range(1, current_path.size()):
+		_line.add_point(map.map_to_local(current_path[idx]))
 
 
 ## Gets a random delay to switch movement types

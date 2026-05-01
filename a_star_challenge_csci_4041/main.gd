@@ -8,6 +8,7 @@ enum EndState {LOSS, WIN}
 @export var enemy_count: int = 2
 @export var lamp_count: int = 10
 @export var maze_parameters: Maze
+@export_range(0, 5, 1, "or_greater") var enemy_spawn_count_on_key_pickup: int = 0
 
 @export_group("Nodes")
 @export var map: Map
@@ -30,7 +31,7 @@ func _start_game() -> void:
 	# Generate the map
 	maze_parameters.generate_maze()
 	map.resolution = maze_parameters.size
-	map.generate_maze(keys_required, lamp_count, enemy_count, maze_parameters._maze)
+	map.generate_maze(keys_required, lamp_count, enemy_count, maze_parameters)
 	
 	Game.game_started.emit()
 
@@ -40,6 +41,9 @@ func _key_collected() -> void:
 	if keys_collected >= keys_required:
 		_game_won()
 	
+	if enemy_spawn_count_on_key_pickup > 0 and keys_collected < keys_required:
+		map.spawn_enemies(enemy_spawn_count_on_key_pickup)
+    
 	Game.keys_updated.emit(keys_collected, keys_required)
 
 

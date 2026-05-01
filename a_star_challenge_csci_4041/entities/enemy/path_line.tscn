@@ -1,5 +1,9 @@
 [gd_scene format=3 uid="uid://k0qw3ewluo02"]
 
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_3qgwp"]
+blend_mode = 1
+
 [node name="EnemyLine" type="Line2D" unique_id=836949721]
 z_index = 1
-default_color = Color(1, 0, 0, 0.29411766)
+material = SubResource("CanvasItemMaterial_3qgwp")
+default_color = Color(1, 1, 1, 0.29411766)

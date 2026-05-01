@@ -2,24 +2,40 @@ class_name AStar
 extends RefCounted
 
 
+const PENALTY_WEIGHT: int = 5
+const MAX_DEPTH: int = 200
+
+
 ## Returns an array dictating the path of cells to take to get from start to goal
-static func pathfind(start: Vector2i, goal: Vector2i, map: Map, greediness: float = 1.0) -> Array[Vector2i]:
-	var open_cells: CellHeap = CellHeap.new().insert(Cell.new(start, 0, absi(start.x - goal.x) + absi(start.y - goal.y), null))
+static func pathfind(start: Vector2i, goal: Vector2i, map: Map, greediness: int, penalty_map: Dictionary[Vector2i, int]) -> Array[Vector2i]:
+	var start_cell: Cell = Cell.new(start, 0, absf(start.x - goal.x) + absf(start.y - goal.y), null)
+	var open_cells: CellHeap = CellHeap.new().insert(start_cell)
 	var closed_positions: Dictionary = {}
 	var current: Cell
 
+	# We keep track of the closest cell to prevent the algorithm from pathfinding
+	# past a certain depth limit
+	var closest_cell: Cell = start_cell
+	var iterations: int = 0
+
 	while not open_cells.is_empty():
 		current = open_cells.pop()
+		iterations += 1
 
-		if current.pos == goal: # Reached the end
+		if current.h_cost < closest_cell.h_cost:
+			closest_cell = current
+
+		if current.pos == goal or iterations >= MAX_DEPTH: # Reached the end
 			return _reconstruct_path(current)
-		
+
 		closed_positions[current.pos] = true
 
 		for neighbor_pos: Vector2i in map.neighbor_map[current.pos]:
 			if closed_positions.has(neighbor_pos): continue
 
-			var g: float = current.g_cost + 1
+			var penalty: int = penalty_map.get(neighbor_pos, 0)
+			
+			var g: float = current.g_cost + 1 + (penalty * PENALTY_WEIGHT)
 			var h: float = (absf(neighbor_pos.x - goal.x) + absf(neighbor_pos.y - goal.y)) * greediness
 
 			# Check if there already exists the neighbor in the open cells
@@ -103,10 +119,10 @@ class CellHeap:
 		while idx > 0:
 			var parent_i: int = (idx - 1) / 2
 			
-			var curr_f: int = heap[idx].f_cost
-			var curr_h: int = heap[idx].h_cost
-			var par_f: int = heap[parent_i].f_cost
-			var par_h: int = heap[parent_i].h_cost
+			var curr_f: float = heap[idx].f_cost
+			var curr_h: float = heap[idx].h_cost
+			var par_f: float = heap[parent_i].f_cost
+			var par_h: float = heap[parent_i].h_cost
 			
 			if curr_f < par_f or (curr_f == par_f and curr_h < par_h):
 				var temp: Cell = heap[idx]
@@ -126,11 +142,11 @@ class CellHeap:
 			var left: int = 2 * idx + 1
 			var right: int = left + 1
 			
-			var s_f: int = heap[smallest].f_cost
-			var s_h: int = heap[smallest].h_cost
+			var s_f: float = heap[smallest].f_cost
+			var s_h: float = heap[smallest].h_cost
 
 			if left < size:
-				var l_f: int = heap[left].f_cost
+				var l_f: float = heap[left].f_cost
 				if l_f < s_f or (l_f == s_f and heap[left].h_cost < s_h): # If f_costs are the same, compare h_costs
 					# If the left child exists and is smaller, mark it as the smallest node
 					smallest = left
@@ -138,7 +154,7 @@ class CellHeap:
 					s_h = heap[left].h_cost
 
 			if right < size:
-				var r_f: int = heap[right].f_cost
+				var r_f: float = heap[right].f_cost
 				if r_f < s_f or (r_f == s_f and heap[right].h_cost < s_h): # If f_costs are the same, compare h_costs
 					# If the right child exists and is smaller, mark it as the smallest node
 					smallest = right
