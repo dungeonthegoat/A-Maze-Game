@@ -18,6 +18,13 @@ const PATH_LINE: PackedScene = preload("uid://k0qw3ewluo02")
 ## The distance (in tiles) the enemy moves each movement
 @export var move_distance: int = 1
 
+## Whether or not the enemy should randomly switch between dependent/independent movement
+@export var switch_modes: bool = true
+
+@export var min_switch_delay_sec: float = 10.0
+@export var max_switch_delay_sec: float = 30.0
+
+
 @export_group("Nodes")
 @export var map: Map
 @export var player: Player
@@ -27,28 +34,41 @@ var _target_pos: Vector2
 var _line: Line2D
 var _current_cycle: int = 0
 
+## The timer that determines when to switch between dependent or independent
+@onready var _switch_timer: Timer = Timer.new()
 @onready var _move_timer: Timer = Timer.new()
 @onready var _footsteps_sounds: AudioStreamPlayer2D = $FootstepsSounds
+
 
 var grid_pos: Vector2i:
 	set(new):
 		grid_pos = new
 		_update_position(new)
 
+
 func _ready() -> void:
 	SignalBus.player_moved.connect(_player_moved)
 	grid_pos = map.local_to_map(global_position)
-	_move_timer.timeout.connect(_timeout)
+	_move_timer.timeout.connect(_move_timeout)
+	_switch_timer.timeout.connect(_switch_timer_timeout)
 
 	_line = PATH_LINE.instantiate()
 	get_tree().current_scene.add_child.call_deferred(_line)
 	_line.visible = line_visible
 
-	if independent_movement:
-		_move_timer.autostart = true
-		_move_timer.wait_time = move_tick_sec
-		_move_timer.one_shot = false
-		add_child.call_deferred(_move_timer)
+	_move_timer.autostart = true
+	_move_timer.wait_time = move_tick_sec
+	_move_timer.one_shot = false
+	add_child.call_deferred(_move_timer)
+
+	if switch_modes:
+		# Start on a random mode if independent
+		independent_movement = randf() > 0.5
+		
+		_switch_timer.autostart = true
+		_switch_timer.wait_time = _get_random_delay_time()
+		_switch_timer.one_shot = true
+		add_child.call_deferred(_switch_timer)
 
 
 func _process(delta: float) -> void:
@@ -59,7 +79,12 @@ func _exit_tree() -> void:
 	_line.queue_free()
 
 
-func _timeout() -> void:
+func _switch_timer_timeout() -> void:
+	independent_movement = not independent_movement
+	_switch_timer.start(_get_random_delay_time())
+
+
+func _move_timeout() -> void:
 	if not independent_movement: return
 	_move()
 
@@ -93,10 +118,17 @@ func _move() -> void:
 		SignalBus.end_game()
 		return
 
+
 func _update_line(path: Array[Vector2i]) -> void:
 	_line.clear_points()
 	for idx in range(1, path.size()):
 		_line.add_point(map.map_to_local(path[idx]))
 
+
 func _update_position(new_grid_pos: Vector2i) -> void:
 	_target_pos = map.map_to_local(new_grid_pos)
+
+
+## Gets a random delay to switch movement types
+func _get_random_delay_time() -> float:
+	return randf_range(min_switch_delay_sec, max_switch_delay_sec)

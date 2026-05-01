@@ -2,6 +2,7 @@ extends Node2D
 
 @export_group("Config")
 @export var keys_required: int = 5
+@export var enemy_count: int = 2
 @export var lamp_count: int = 10
 @export var maze_parameters: Maze
 
@@ -25,7 +26,7 @@ func _ready() -> void:
 	# Generate the map
 	maze_parameters.generate_maze()
 	map.resolution = maze_parameters.size
-	map.generate_maze(keys_required, lamp_count, maze_parameters._maze)
+	map.generate_maze(keys_required, lamp_count, enemy_count, maze_parameters._maze)
 
 
 func _key_collected() -> void:

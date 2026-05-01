@@ -14,8 +14,6 @@ const LAMP: PackedScene = preload("uid://ge4h8fa17kpc")
 
 var neighbor_map: Dictionary[Vector2i, Array] = {}
 var resolution: Vector2i = Vector2i(36, 20)
-var _current_player: Player
-var _current_enemy: Enemy
 
 @onready var camera: PlayerCamera = get_tree().current_scene.get_node("%PlayerCamera")
 
@@ -50,7 +48,7 @@ func display_edges(edges: Array[Edge]) -> void:
 
 
 ## Generates a procedural maze that is ready for pathfinding
-func generate_maze(num_keys: int, light_count: int, custom_maze: Array[Edge] = []) -> void:
+func generate_maze(num_keys: int, light_count: int, enemy_count: int, custom_maze: Array[Edge] = []) -> void:
 	# Display the edges and update the physical tile map 
 	var maze_edges: Array[Edge]
 	if not custom_maze.is_empty():
@@ -66,7 +64,7 @@ func generate_maze(num_keys: int, light_count: int, custom_maze: Array[Edge] = [
 	_init_neighbors(maze_edges)
 
 	# Spawn in the player and enemy
-	_spawn_entities(maze_edges)
+	_spawn_entities(maze_edges, enemy_count)
 
 	# Finally, spawn the keys in
 	_spawn_keys(maze_edges, num_keys)
@@ -75,32 +73,28 @@ func generate_maze(num_keys: int, light_count: int, custom_maze: Array[Edge] = [
 
 
 ## Spawns the player and enemies into the maze
-func _spawn_entities(maze: Array[Edge]) -> void:
+func _spawn_entities(maze: Array[Edge], enemy_count: int) -> void:
 	# Spawn player
-	if _current_player:
-		_current_player.queue_free()
 	
-	_current_player = PLAYER.instantiate()
-	_current_player.map = self
-	get_tree().current_scene.add_child.call(_current_player)
+	var player: Player = PLAYER.instantiate()
+	player.map = self
+	get_tree().current_scene.add_child.call(player)
 
 	var offset: Vector2i = resolution / 2 - Vector2i.ONE
-	_current_player.grid_pos = maze[0].from * 2 - offset
-	_current_player.position = map_to_local(_current_player.grid_pos)
-	camera.player = _current_player
+	player.grid_pos = maze[0].from * 2 - offset
+	player.position = map_to_local(player.grid_pos)
+	camera.player = player
 	if camera.follow_player:
-		camera.position = map_to_local(_current_player.grid_pos)
+		camera.position = map_to_local(player.grid_pos)
 
-	# Spawn enemy
-	if _current_enemy:
-		_current_enemy.queue_free()
-	
-	_current_enemy = ENEMY.instantiate()
-	_current_enemy.map = self
-	get_tree().current_scene.add_child.call(_current_enemy)
+	# Spawn enemies
+	for _i in enemy_count:
+		var enemy: Enemy = ENEMY.instantiate()
+		enemy.map = self
+		get_tree().current_scene.add_child.call(enemy)
 
-	_current_enemy.grid_pos = maze[-1].from * 2 - offset
-	_current_enemy.player = _current_player
+		enemy.grid_pos = maze[randi_range(1, maze.size() - 1)].from * 2 - offset
+		enemy.player = player
 
 
 func _spawn_keys(maze: Array[Edge], key_count: int) -> void:
