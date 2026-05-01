@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const PENALTY_WEIGHT: int = 5
-const MAX_DEPTH: int = 200
+const MAX_DEPTH: int = 500
 
 
 ## Returns an array dictating the path of cells to take to get from start to goal
