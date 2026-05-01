@@ -5,6 +5,7 @@ extends TileMapLayer
 const PLAYER: PackedScene = preload("uid://ceu354p11d0if")
 const ENEMY: PackedScene = preload("uid://cidtv8w4mv6nh")
 const KEY: PackedScene = preload("uid://c5vy355ik3o2a")
+const LAMP: PackedScene = preload("uid://ge4h8fa17kpc")
 
 
 @export_group("Config")
@@ -49,7 +50,7 @@ func display_edges(edges: Array[Edge]) -> void:
 
 
 ## Generates a procedural maze that is ready for pathfinding
-func generate_maze(num_keys: int, custom_maze: Array[Edge] = []) -> void:
+func generate_maze(num_keys: int, light_count: int, custom_maze: Array[Edge] = []) -> void:
 	# Display the edges and update the physical tile map 
 	var maze_edges: Array[Edge]
 	if not custom_maze.is_empty():
@@ -69,6 +70,7 @@ func generate_maze(num_keys: int, custom_maze: Array[Edge] = []) -> void:
 
 	# Finally, spawn the keys in
 	_spawn_keys(maze_edges, num_keys)
+	_spawn_lamps(maze_edges, light_count)
 
 
 
@@ -80,7 +82,7 @@ func _spawn_entities(maze: Array[Edge]) -> void:
 	
 	_current_player = PLAYER.instantiate()
 	_current_player.map = self
-	add_child.call(_current_player)
+	get_tree().current_scene.add_child.call(_current_player)
 
 	var offset: Vector2i = resolution / 2 - Vector2i.ONE
 	_current_player.grid_pos = maze[0].from * 2 - offset
@@ -95,7 +97,7 @@ func _spawn_entities(maze: Array[Edge]) -> void:
 	
 	_current_enemy = ENEMY.instantiate()
 	_current_enemy.map = self
-	add_child.call(_current_enemy)
+	get_tree().current_scene.add_child.call(_current_enemy)
 
 	_current_enemy.grid_pos = maze[-1].from * 2 - offset
 	_current_enemy.player = _current_player
@@ -124,6 +126,26 @@ func _spawn_keys(maze: Array[Edge], key_count: int) -> void:
 		var key: MapKey = KEY.instantiate()
 		key.global_position = spawn_pos
 		add_child.call_deferred(key)
+
+
+func _spawn_lamps(maze: Array[Edge], count: int) -> void:
+	var valid_positions: Dictionary
+	for idx in range(1, maze.size() - 2):
+		valid_positions[maze[idx].from] = true
+		valid_positions[maze[idx].to] = true
+	
+	var spawn_points := valid_positions.keys()
+	spawn_points.shuffle()
+
+	var offset: Vector2i = resolution / 2 - Vector2i.ONE
+
+	for _i in range(count):
+		if spawn_points.is_empty(): return
+
+		var spawn_pos: Vector2 = map_to_local(spawn_points.pop_back() * 2  - offset)
+		var lamp: Node2D = LAMP.instantiate()
+		lamp.global_position = spawn_pos
+		get_tree().current_scene.add_child.call_deferred(lamp)
 
 
 ## Initializes the neighbors of every cell into a dictionary to allow for faster cell-neighbor lookup

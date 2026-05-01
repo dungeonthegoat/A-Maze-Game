@@ -16,7 +16,7 @@ func _ready() -> void:
 	light.color = outer_sprite.modulate
 
 
-func _area_entered(area: Area2D) -> void:
+func _area_entered(_area: Area2D) -> void:
 	if _collected: return
 
 	_collected = true

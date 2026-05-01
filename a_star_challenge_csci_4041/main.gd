@@ -2,6 +2,7 @@ extends Node2D
 
 @export_group("Config")
 @export var keys_required: int = 5
+@export var lamp_count: int = 10
 @export var maze_parameters: Maze
 
 @export_group("Nodes")
@@ -23,14 +24,15 @@ func _ready() -> void:
 	
 	# Generate the map
 	maze_parameters.generate_maze()
-	map.generate_maze(keys_required, maze_parameters._maze)
+	map.resolution = maze_parameters.size
+	map.generate_maze(keys_required, lamp_count, maze_parameters._maze)
 
 
 func _key_collected() -> void:
 	keys_collected += 1
 	if keys_collected >= keys_required:
 		# End the game here (victory)
-		get_tree().quit()
+		get_tree().reload_current_scene.call_deferred()
 	
 	SignalBus.keys_updated.emit(keys_collected, keys_required)
 

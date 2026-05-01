@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://ge4h8fa17kpc"]
+
+[ext_resource type="Texture2D" uid="uid://cjm6f7lxku0ed" path="res://entities/lamp/lamp.png" id="1_73oyx"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_73oyx"]
+blend_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_fkugw"]
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_73oyx"]
+gradient = SubResource("Gradient_fkugw")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[node name="Lamp" type="Node2D" unique_id=470608224]
+z_index = -2
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1881233140]
+self_modulate = Color(1, 1, 1, 0.48235294)
+material = SubResource("CanvasItemMaterial_73oyx")
+texture = ExtResource("1_73oyx")
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=977431377]
+color = Color(1, 0.994, 0.64, 1)
+energy = 0.75
+shadow_enabled = true
+texture = SubResource("GradientTexture2D_73oyx")
+texture_scale = 2.0
