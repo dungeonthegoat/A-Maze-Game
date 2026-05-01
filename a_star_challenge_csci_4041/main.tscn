@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://diojsb8j8nqng" path="res://entities/key/key.png" id="4_5vw27"]
 [ext_resource type="FontFile" uid="uid://dmkvgi8ifxdgx" path="res://gui/ari-w9500.ttf" id="4_272bh"]
 [ext_resource type="Script" uid="uid://dva0888t7l027" path="res://gui/key_label.gd" id="6_kek77"]
+[ext_resource type="AudioStream" uid="uid://bovxelie22hmn" path="res://entities/key/victory_chime.wav" id="8_4c57u"]
 
 [sub_resource type="Image" id="Image_kek77"]
 data = {
@@ -39,6 +40,11 @@ width = 512
 height = 512
 fill = 1
 fill_from = Vector2(0.5, 0.5)
+
+[sub_resource type="LabelSettings" id="LabelSettings_kek77"]
+font = ExtResource("4_272bh")
+font_size = 128
+font_color = Color(0.32999998, 1, 0.44166654, 1)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_h2yge"]
 atlas = ExtResource("1_ig7tw")
@@ -89,6 +95,54 @@ tracks/3/path = NodePath("JumpscareAudio:playing")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Face:visible")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("VictoryLabel:position")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, -500)]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("VictoryAudio:playing")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("VictoryLabel:visible")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
@@ -146,11 +200,75 @@ tracks/3/keys = {
 "update": 1,
 "values": [true]
 }
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Face:visible")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="Animation" id="Animation_4c57u"]
+resource_name = "victory"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("VictoryLabel:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.42),
+"transitions": PackedFloat32Array(0.20306315, 1),
+"update": 0,
+"values": [Vector2(0, -500), Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Vignette:self_modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.45),
+"transitions": PackedFloat32Array(0.22531264, 1),
+"update": 0,
+"values": [Color(0, 0, 0, 1), Color(0.2587706, 0.91384345, 0.48232132, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("VictoryAudio:playing")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("VictoryLabel:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_lquwl"]
 _data = {
 &"RESET": SubResource("Animation_h2yge"),
-&"jumpscare": SubResource("Animation_1bvp3")
+&"jumpscare": SubResource("Animation_1bvp3"),
+&"victory": SubResource("Animation_4c57u")
 }
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kek77"]
@@ -237,7 +355,22 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("GradientTexture2D_1bvp3")
 
+[node name="VictoryLabel" type="Label" parent="CanvasLayer" unique_id=1248388035]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -500.0
+offset_bottom = -500.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Victory"
+label_settings = SubResource("LabelSettings_kek77")
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Face" type="TextureRect" parent="CanvasLayer" unique_id=494307107]
+visible = false
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -253,13 +386,14 @@ scale = Vector2(30, 30)
 pivot_offset = Vector2(8, 8)
 texture = SubResource("AtlasTexture_h2yge")
 
-[node name="JumpscareAnimation" type="AnimationPlayer" parent="CanvasLayer" unique_id=583181060]
+[node name="EndGameAnimation" type="AnimationPlayer" parent="CanvasLayer" unique_id=583181060]
 unique_name_in_owner = true
 libraries/ = SubResource("AnimationLibrary_lquwl")
 
 [node name="JumpscareAudio" type="AudioStreamPlayer" parent="CanvasLayer" unique_id=703806068]
 stream = ExtResource("2_lquwl")
 volume_db = -4.0
+bus = &"Ambient"
 
 [node name="MarginContainer" type="MarginContainer" parent="CanvasLayer" unique_id=2067945527]
 anchors_preset = 5
@@ -294,6 +428,11 @@ script = ExtResource("6_kek77")
 [node name="KeyAnimation" type="AnimationPlayer" parent="CanvasLayer/MarginContainer/HBoxContainer/KeyLabel" unique_id=1765427260]
 root_node = NodePath("../../../..")
 libraries/ = SubResource("AnimationLibrary_4c57u")
+
+[node name="VictoryAudio" type="AudioStreamPlayer" parent="CanvasLayer" unique_id=825747784]
+stream = ExtResource("8_4c57u")
+volume_db = -2.0
+bus = &"Ambient"
 
 [node name="PlayerCamera" type="Camera2D" parent="." unique_id=209801157]
 unique_name_in_owner = true

@@ -1,5 +1,5 @@
 class_name Enemy
-extends Sprite2D
+extends GridEntity
 
 const PATH_LINE: PackedScene = preload("uid://k0qw3ewluo02")
 
@@ -24,13 +24,13 @@ const PATH_LINE: PackedScene = preload("uid://k0qw3ewluo02")
 @export var min_switch_delay_sec: float = 10.0
 @export var max_switch_delay_sec: float = 30.0
 
+## Higher value = less precise but much faster
+@export_range(0.0, 2.0, 0.1, "or_greater") var heuristic_weight: float = 1.0
+
 
 @export_group("Nodes")
-@export var map: Map
 @export var player: Player
 
-var smoothing: float = 30.0
-var _target_pos: Vector2
 var _line: Line2D
 var _current_cycle: int = 0
 
@@ -40,14 +40,8 @@ var _current_cycle: int = 0
 @onready var _footsteps_sounds: AudioStreamPlayer2D = $FootstepsSounds
 
 
-var grid_pos: Vector2i:
-	set(new):
-		grid_pos = new
-		_update_position(new)
-
-
 func _ready() -> void:
-	SignalBus.player_moved.connect(_player_moved)
+	Game.player_moved.connect(_player_moved)
 	grid_pos = map.local_to_map(global_position)
 	_move_timer.timeout.connect(_move_timeout)
 	_switch_timer.timeout.connect(_switch_timer_timeout)
@@ -71,10 +65,6 @@ func _ready() -> void:
 		add_child.call_deferred(_switch_timer)
 
 
-func _process(delta: float) -> void:
-	global_position = global_position.lerp(_target_pos, 1.0 - exp(-delta * smoothing))
-
-
 func _exit_tree() -> void:
 	_line.queue_free()
 
@@ -91,7 +81,7 @@ func _move_timeout() -> void:
 
 func _player_moved(_new_pos: Vector2i) -> void:
 	if player.grid_pos == grid_pos:
-		SignalBus.end_game()
+		Game.player_caught.emit()
 		return
 
 	if independent_movement: return
@@ -102,12 +92,12 @@ func _player_moved(_new_pos: Vector2i) -> void:
 
 ## Attempts to move the enemy towards the player
 func _move() -> void:
-	if randf() > move_chance or SignalBus.is_game_over:
+	if randf() > move_chance or Game.is_game_over:
 		return
 
-	var path: Array[Vector2i] = AStar.pathfind(grid_pos, player.grid_pos, map, 1.0)
+	var path: Array[Vector2i] = AStar.pathfind(grid_pos, player.grid_pos, map, heuristic_weight)
 	if path.size() <= move_distance:
-		SignalBus.end_game()
+		Game.player_caught.emit()
 		return
 	
 	grid_pos = path[move_distance]
@@ -115,7 +105,7 @@ func _move() -> void:
 	_footsteps_sounds.play()
 
 	if player.grid_pos == grid_pos:
-		SignalBus.end_game()
+		Game.player_caught.emit()
 		return
 
 
@@ -123,10 +113,6 @@ func _update_line(path: Array[Vector2i]) -> void:
 	_line.clear_points()
 	for idx in range(1, path.size()):
 		_line.add_point(map.map_to_local(path[idx]))
-
-
-func _update_position(new_grid_pos: Vector2i) -> void:
-	_target_pos = map.map_to_local(new_grid_pos)
 
 
 ## Gets a random delay to switch movement types

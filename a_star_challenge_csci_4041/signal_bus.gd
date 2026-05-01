@@ -3,20 +3,22 @@ extends Node
 signal key_collected()
 signal keys_updated(keys: int, max_keys: int)
 signal player_moved(to: Vector2i)
-signal game_ended()
+signal player_caught()
+signal game_ended(state: GameManager.EndState)
+signal game_started()
+
 
 var is_game_over: bool = false
 
 
-func end_game() -> void:
-    # Don't allow ending the game multiple times
-    if is_game_over:
-        return
-    
-    is_game_over = true
-    game_ended.emit()
+func _ready() -> void:
+	game_ended.connect(_game_ended)
+	game_started.connect(_game_started)
 
 
-func restart_game() -> void:
-    is_game_over = false
-    get_tree().reload_current_scene()
+func _game_ended(_state: GameManager.EndState) -> void:
+	is_game_over = true
+
+
+func _game_started() -> void:
+	is_game_over = false

@@ -5,7 +5,7 @@ var curr_keys: int = 0
 
 
 func _ready() -> void:
-	SignalBus.keys_updated.connect(_updated)
+	Game.keys_updated.connect(_updated)
 
 
 func _updated(keys: int, max_keys: int) -> void:

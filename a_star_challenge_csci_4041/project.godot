@@ -21,7 +21,7 @@ buses/default_bus_layout="uid://gpuivooj72n2"
 
 [autoload]
 
-SignalBus="*uid://t13ghe7d8rdf"
+Game="*uid://t13ghe7d8rdf"
 
 [debug]
 

@@ -20,7 +20,7 @@ func _area_entered(_area: Area2D) -> void:
 	if _collected: return
 
 	_collected = true
-	SignalBus.key_collected.emit()
+	Game.key_collected.emit()
 	anim_player.play("collect")
 
 
