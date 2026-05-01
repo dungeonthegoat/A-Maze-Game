@@ -49,22 +49,26 @@ func display_edges(edges: Array[Edge]) -> void:
 
 
 ## Generates a procedural maze that is ready for pathfinding
-func generate_maze(seed: int, num_keys: int) -> void:
-	# 1. Generate a grid graph of the desired resolution
-	var grid_graph: Grid.GridGraph = Grid.GridGraph.new(resolution)
+func generate_maze(num_keys: int, custom_maze: Array[Edge] = []) -> void:
+	# Display the edges and update the physical tile map 
+	var maze_edges: Array[Edge]
+	if not custom_maze.is_empty():
+		maze_edges = custom_maze
+	else:
+		var maze: Maze = Maze.new()
+		maze.size = resolution
+		maze_edges = maze.generate_maze()
+	
+	display_edges(maze_edges)
 
-	# 2. Display the edges and update the physical tile map 
-	var maze: Array[Edge] = Grid.find_minimum_spanning_edges(grid_graph.vertices, grid_graph.edges, perfect_maze)
-	display_edges(maze)
+	# Update the neighbors dictionary to prepare for pathfinding
+	_init_neighbors(maze_edges)
 
-	# 3. Update the neighbors dictionary to prepare for pathfinding
-	_init_neighbors(maze)
+	# Spawn in the player and enemy
+	_spawn_entities(maze_edges)
 
-	# 4. Spawn in the player and enemy
-	_spawn_entities(maze)
-
-	# 5. Finally, spawn the keys in
-	_spawn_keys(maze, num_keys)
+	# Finally, spawn the keys in
+	_spawn_keys(maze_edges, num_keys)
 
 
 

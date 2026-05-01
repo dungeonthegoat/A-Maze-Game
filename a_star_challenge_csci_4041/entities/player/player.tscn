@@ -10,11 +10,11 @@
 atlas = ExtResource("1_b0kkn")
 region = Rect2(16, 16, 16, 16)
 
-[sub_resource type="Gradient" id="Gradient_b0kkn"]
+[sub_resource type="Gradient" id="Gradient_fkugw"]
 colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_e4p34"]
-gradient = SubResource("Gradient_b0kkn")
+gradient = SubResource("Gradient_fkugw")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(0.5, 0)
@@ -36,12 +36,12 @@ script = ExtResource("2_e4p34")
 
 [node name="PlayerLight" type="PointLight2D" parent="." unique_id=213265205]
 color = Color(0.33999997, 0.7250001, 1, 1)
-energy = 0.4
+energy = 0.2
 shadow_enabled = true
 texture = SubResource("GradientTexture2D_e4p34")
 
 [node name="VisibilityLight" type="PointLight2D" parent="." unique_id=494162960]
-energy = 0.75
+energy = 1.25
 shadow_enabled = true
 texture = SubResource("GradientTexture2D_e4p34")
 texture_scale = 5.0

@@ -1,23 +1,15 @@
 class_name MinHeap
 extends RefCounted
-
-
-class Vert:
-	var position: Vector2i
-	var weight: float
-	var idx: int
-
-	func _init(pos: Vector2i, w: float, i: int = 0) -> void:
-		position = pos
-		weight = w
-		idx = i
-
+## A class representing a min heap that stores Verts and prioritizes the smallest weight
 
 var heap: Array[Vert] = []
 var map: Dictionary[Vector2i, Vert] = {}
 
+
+## Returns whether or not a min heap is empty
 func is_empty() -> bool:
 	return heap.is_empty()
+
 
 ## Inserts a cell at the very end of the array and shifts it up into place
 func insert(cell: Vert) -> MinHeap:
@@ -26,6 +18,7 @@ func insert(cell: Vert) -> MinHeap:
 	map[cell.position] = cell
 	_shift_up(cell.idx)
 	return self
+
 
 ## Removes the top cell of the array and readjusts the rest of the heap
 func pop() -> Vert:
@@ -44,7 +37,9 @@ func pop() -> Vert:
 	return root
 
 
+## Shifts a Vert from a specific index up the heap
 func _shift_up(idx: int) -> void:
+    # Repeatedly swap with parent if the parent is a higher weight
 	while idx > 0:
 		var parent_i: int = (idx - 1) / 2
 		if heap[idx].weight < heap[parent_i].weight:
@@ -59,9 +54,11 @@ func _shift_up(idx: int) -> void:
 			return
 
 
+## Shifts a Vert from a specific index down the heap
 func _shift_down(idx: int) -> void:
 	var size: int = heap.size()
 	
+    # Repeatedly swap the current Vert its smaller child
 	while true:
 		var smallest: int = idx
 		var smallest_weight: float = heap[idx].weight
@@ -77,6 +74,7 @@ func _shift_down(idx: int) -> void:
 			smallest = right
 			smallest_weight = heap[right].weight
 
+        # If one of the children are smaller than the current vertex, swap the two
 		if smallest != idx:
 			var temp: Vert = heap[smallest]
 			heap[smallest] = heap[idx]
@@ -87,3 +85,15 @@ func _shift_down(idx: int) -> void:
 			idx = smallest
 		else:
 			return
+
+
+class Vert:
+    ## A class that represents a vertex to be stored in a MinHeap
+	var position: Vector2i
+	var weight: float
+	var idx: int
+
+	func _init(pos: Vector2i, w: float, i: int = 0) -> void:
+		position = pos
+		weight = w
+		idx = i

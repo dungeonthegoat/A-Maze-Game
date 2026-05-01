@@ -2,7 +2,7 @@ extends Node2D
 
 @export_group("Config")
 @export var keys_required: int = 5
-@export var map_size: Vector2i = Vector2i(16, 16)
+@export var maze_parameters: Maze
 
 @export_group("Nodes")
 @export var map: Map
@@ -22,8 +22,8 @@ func _ready() -> void:
 		if anim_name == "jumpscare": SignalBus.restart_game())
 	
 	# Generate the map
-	map.resolution = map_size
-	map.generate_maze(randi(), keys_required)
+	maze_parameters.generate_maze()
+	map.generate_maze(keys_required, maze_parameters._maze)
 
 
 func _key_collected() -> void:

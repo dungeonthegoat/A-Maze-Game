@@ -15,6 +15,8 @@ const PATH_LINE: PackedScene = preload("uid://k0qw3ewluo02")
 @export var move_interval: int = 1
 ## The probability the enemy will move when attempting to, regardless of its movement type
 @export var move_chance: float = 0.9
+## The distance (in tiles) the enemy moves each movement
+@export var move_distance: int = 1
 
 @export_group("Nodes")
 @export var map: Map
@@ -79,11 +81,11 @@ func _move() -> void:
 		return
 
 	var path: Array[Vector2i] = AStar.pathfind(grid_pos, player.grid_pos, map, 1.0)
-	if path.size() <= 1:
+	if path.size() <= move_distance:
 		SignalBus.end_game()
 		return
 	
-	grid_pos = path[1]
+	grid_pos = path[move_distance]
 	_update_line(path)
 	_footsteps_sounds.play()
 

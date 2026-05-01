@@ -38,7 +38,9 @@ window/stretch/mode="canvas_items"
 
 folder_colors={
 "res://entities/": "yellow",
-"res://gui/": "green"
+"res://gui/": "green",
+"res://map/": "blue",
+"res://mazes/": "pink"
 }
 
 [input]
