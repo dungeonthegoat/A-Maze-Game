@@ -39,9 +39,7 @@ func generate_maze() -> Array[Edge]:
 	if size.x < MIN_SIZE or size.y < MIN_SIZE:
 		push_warning("Cannot generate maze; both size dimensions must be at least %d" % MIN_SIZE)
 		return []
-
-	_vertices.clear()
-	_edges.clear()
+	
 	_maze.clear()
 
 	_generate_weighted_lattice()
@@ -96,88 +94,107 @@ func find_minimum_spanning_edges() -> Array[Edge]:
 
 			var neighbor_vert: MinHeap.Vert = cheapest_cost.map[neighbor]
 
+			# If the current edge is cheaper than the neighbor vertex,
+			# set the current edge as its cheapest edge
 			if edge.weight < neighbor_vert.weight:
 				neighbor_vert.weight = edge.weight
 				cheapest_cost._shift_up(neighbor_vert.idx)
 				cheapest_edge[neighbor] = edge
 
-	var result_edges: Array[Edge] = []
+	_maze = []
+
+	## A dictionary respresenting if an edge was used in the maze
+	## (allows for construction of the array of unused edges in
+	## O(N) time)
 	var used_edges: Dictionary[Edge, bool] = {}
 
 	for edge: Edge in cheapest_edge.values():
-		result_edges.append(edge)
+		_maze.append(edge)
 		used_edges[edge] = true
 
-	# Prim's algorithm is done here if the maze is perfect
+	# Prim's algorithm is done here if generating a perfect maze
 
 	if not make_perfect:
-		# After getting all of the edges, we want to add some extra edges
-		# to ensure that there are loops so the player can outmaneuver the
-		# enemy while being chased. These loops should have a minimum loop
-		# distance of some integer to prevent tiny 3x3 loops.
-
-		# The dictionary of every vertex and its adjacent vertices in the MAZE (different from adj_edges)
-		var current_adj: Dictionary[Vector2i, Array] = {}
-		for v in _vertices: current_adj[v] = []
-		for edge in result_edges:
-			current_adj[edge.from].append(edge.to)
-			current_adj[edge.to].append(edge.from)
-		
-		var extra_edges: Array[Edge] = [] # Edges excluded from the MST
-		for edge in _edges:
-			if not used_edges.has(edge):
-				extra_edges.append(edge)
-		extra_edges.shuffle()
-
-		var target_loop_count: int = maxi(1, _edges.size() * loop_count_scale)
-		var loop_count: int = 0
-
-		# Loop through every extraneous edge and try to find a loop larger than the minimum distance
-		while loop_count < target_loop_count and not extra_edges.is_empty():
-			# Select an edge to search on
-			var curr_edge: Edge = extra_edges.pop_back()
-
-			# Perform a breadth-first search from edge.from to edge.to
-			var below_min_dist: bool = false
-			var dist: int = 0
-			var search: Array[Vector2i] = [curr_edge.from]
-			var visited: Dictionary[Vector2i, bool] = {curr_edge.from: true}
-
-			while not search.is_empty() and dist < min_loop_size:
-				var next_search: Array[Vector2i] = []
-				for node in search:
-					# If any path is too short, then adding an edge will make
-					# a loop too short, so you have to end the search early
-					if node == curr_edge.to:
-						below_min_dist = true
-						break
-
-					# Otherwise, add all of the neighbors (that haven't been
-					# searched) to be searched in the next pass
-					for neighbor: Vector2i in current_adj[node]:
-						if not visited.has(neighbor):
-							visited[neighbor] = true
-							next_search.append(neighbor)
-
-				search = next_search
-				dist += 1
-
-			if not below_min_dist:
-				loop_count += 1
-				# Add the new edge to the result AND the adjacency dictionary
-				result_edges.append(curr_edge)
-				current_adj[curr_edge.from].append(curr_edge.to)
-				current_adj[curr_edge.to].append(curr_edge.from)
-
-	_maze = result_edges
-	return result_edges
+		_add_loops(used_edges)
+	
+	return _maze
 
 
-## Generates the lattice graph from the maze's resolution
+## Adds loops to the current perfect maze based on config parameters
+func _add_loops(used_edges: Dictionary[Edge, bool]) -> void:
+	# Build a dictionary of every vertex and its adjacent vertices in the 
+	# maze (different from adj_edges)
+	var current_adj: Dictionary[Vector2i, Array] = {}
+	for v in _vertices: current_adj[v] = []
+	for edge in _maze: # Only make connections between vertices that are edges in the perfect maze
+		current_adj[edge.from].append(edge.to)
+		current_adj[edge.to].append(edge.from)
+	
+	# Build a list of the edges that did NOT make it into the maze using the
+	# used_edges dictionary we made earlier
+	var extra_edges: Array[Edge] = []
+	for edge in _edges:
+		if not used_edges.has(edge):
+			extra_edges.append(edge)
+	extra_edges.shuffle()
+
+	var target_loop_count: int = maxi(1, _edges.size() * loop_count_scale)
+	var loop_count: int = 0
+
+	# Loop through every unused edge and try to find a loop larger than the
+	# minimum loop distance using a breadth-first search
+	while loop_count < target_loop_count and not extra_edges.is_empty():
+		# Select a random edge to search on (extra_edges is shuffled)
+		var curr_edge: Edge = extra_edges.pop_back()
+
+		# Perform a breadth-first search from the chosen edge.from to edge.to
+		var below_min_dist: bool = false
+		var dist: int = 0
+		var search: Array[Vector2i] = [curr_edge.from]
+		var visited: Dictionary[Vector2i, bool] = {curr_edge.from: true}
+
+		# Breadth-first search
+		while not search.is_empty() and dist < min_loop_size:
+			# Every next iteration should search through all of the current
+			# iteration's neighbors
+			var next_search: Array[Vector2i] = []
+			for node in search:
+				# If any path is too short, then adding an edge will make
+				# a loop too short, so you have to end the search early
+				if node == curr_edge.to:
+					below_min_dist = true
+					break
+
+				# Otherwise, add all of the neighbors (that haven't been
+				# searched) to be searched in the next pass
+				for neighbor: Vector2i in current_adj[node]:
+					if not visited.has(neighbor):
+						visited[neighbor] = true
+						next_search.append(neighbor)
+
+			search = next_search
+			dist += 1
+
+		# If no loop was found that's shorter than the minimum distance, we
+		# are free to add that edge to the final maze
+		if not below_min_dist:
+			loop_count += 1
+			# Add the new edge to the result AND the adjacency dictionary
+			_maze.append(curr_edge)
+			current_adj[curr_edge.from].append(curr_edge.to)
+			current_adj[curr_edge.to].append(curr_edge.from)
+
+
+## Generates the weighted lattice graph
 func _generate_weighted_lattice() -> void:
+	# Clear everything in the graph before generating
+	_vertices.clear()
+	_edges.clear()
+
 	# Since the lattice grid is spaced out, we space out the resolution
 	# to account for this
 	var scaled_resolution: Vector2i = (size - Vector2i.ONE) / 2
+
 	# A dictionary to temporarily store the vertices for easy access when
 	# creating edges
 	var temp_verts: Dictionary[Vector2i, bool]
@@ -187,14 +204,16 @@ func _generate_weighted_lattice() -> void:
 			temp_verts[Vector2i(x, y)] = true
 			_vertices.append(Vector2i(x, y))
 
-			# Construct the edges to the top and left of the current vertex if possible
-			if temp_verts.has(Vector2i(x - 1, y)):
+			# Because we move from top left to bottom right, we construct the
+			# edges to the vertices to the left and top of the current vertex
+			# if one exists
+			if temp_verts.has(Vector2i(x - 1, y)): # Left edge
 				_edges.append(Edge.new(Vector2i(x, y), Vector2i(x - 1, y), randf()))
-			if temp_verts.has(Vector2i(x, y - 1)):
+			if temp_verts.has(Vector2i(x, y - 1)): # Top edge
 				_edges.append(Edge.new(Vector2i(x, y), Vector2i(x, y - 1), randf()))
 
 
-## Generates an image displaying the current maze
+## Generates a preview image of the maze in the inspector
 func _display_maze() -> void:
 	var maze_image: Image = Image.create(size.x, size.y, false, Image.FORMAT_RGB8)
 	maze_image.fill(Color.BLACK)

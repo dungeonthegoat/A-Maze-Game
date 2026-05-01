@@ -2,7 +2,9 @@ class_name MinHeap
 extends RefCounted
 ## A class representing a min heap that stores Verts and prioritizes the smallest weight
 
+## The min heap itself (represented as an array)
 var heap: Array[Vert] = []
+## A dictionary that maps a vertex's position to its Vert element
 var map: Dictionary[Vector2i, Vert] = {}
 
 
@@ -11,11 +13,12 @@ func is_empty() -> bool:
 	return heap.is_empty()
 
 
-## Inserts a cell at the very end of the array and shifts it up into place
+## Inserts a cell at the very end of the heap array and shifts it up into place
 func insert(cell: Vert) -> MinHeap:
 	heap.append(cell)
 	cell.idx = heap.size() - 1
 	map[cell.position] = cell
+
 	_shift_up(cell.idx)
 	return self
 
@@ -43,6 +46,7 @@ func _shift_up(idx: int) -> void:
 	while idx > 0:
 		var parent_i: int = (idx - 1) / 2
 		if heap[idx].weight < heap[parent_i].weight:
+            # Swap heap[idx] with heap[parent_i]
 			var temp: Vert = heap[idx]
 			heap[idx] = heap[parent_i]
 			heap[parent_i] = temp
@@ -51,6 +55,7 @@ func _shift_up(idx: int) -> void:
 
 			idx = parent_i
 		else:
+            # If no parent is swapped, it is in the right position, so we may return
 			return
 
 
@@ -76,6 +81,7 @@ func _shift_down(idx: int) -> void:
 
         # If one of the children are smaller than the current vertex, swap the two
 		if smallest != idx:
+            # Swap heap[idx] with heap[smallest]
 			var temp: Vert = heap[smallest]
 			heap[smallest] = heap[idx]
 			heap[idx] = temp
@@ -84,11 +90,14 @@ func _shift_down(idx: int) -> void:
 
 			idx = smallest
 		else:
+            # If no children are swapped, it is in the right position, so we
+            # can safely return
 			return
 
 
 class Vert:
     ## A class that represents a vertex to be stored in a MinHeap
+
 	var position: Vector2i
 	var weight: float
 	var idx: int
