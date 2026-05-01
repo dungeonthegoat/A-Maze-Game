@@ -12,7 +12,7 @@ config_version=5
 
 config/name="A-Star Challenge CSCI 4041"
 run/main_scene="uid://c4q87vvihwthr"
-config/features=PackedStringArray("4.7", "Forward Plus")
+config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="uid://cf2nnhar1fq45"
 
 [audio]
@@ -35,6 +35,10 @@ gdscript/warnings/narrowing_conversion=0
 window/size/viewport_height=640
 window/size/mode=3
 window/stretch/mode="canvas_items"
+
+[dotnet]
+
+project/assembly_name="A-Star Challenge CSCI 4041"
 
 [file_customization]
 
