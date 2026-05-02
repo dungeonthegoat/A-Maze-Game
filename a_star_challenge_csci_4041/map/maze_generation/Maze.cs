@@ -74,7 +74,7 @@ public partial class Maze : Resource
         }
 
         // Starting vertex can be arbitrary
-        Vector2I startVertex = _vertices[0];
+        Vector2I startVertex = _vertices[GD.RandRange(0, _vertices.Count - 1)];
         cheapestCost.Insert(new MinHeap.Vert(startVertex, 0));
 
         Vector2I currentVert;

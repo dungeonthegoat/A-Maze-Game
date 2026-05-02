@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://cidtv8w4mv6nh"]
 
 [ext_resource type="Texture2D" uid="uid://cfsk3owhpu6f0" path="res://entities/game_sprites.png" id="1_pqhw6"]
-[ext_resource type="Script" uid="uid://b02np4obs8wwj" path="res://entities/enemy/enemy.gd" id="2_b4nis"]
+[ext_resource type="Script" uid="uid://d4krno7wecd32" path="res://entities/enemy/Enemy.cs" id="2_4wwj3"]
 [ext_resource type="AudioStream" uid="uid://dqdbxn12dl4rs" path="res://entities/enemy/sounds/footsteps/enemy_footsteps_1.wav" id="3_4wwj3"]
+[ext_resource type="PackedScene" uid="uid://k0qw3ewluo02" path="res://entities/enemy/path_line.tscn" id="3_d50e0"]
 [ext_resource type="AudioStream" uid="uid://bebirjwyimd5v" path="res://entities/enemy/sounds/footsteps/enemy_footsteps_2.wav" id="4_d50e0"]
 [ext_resource type="AudioStream" uid="uid://byxhtie0r8wii" path="res://entities/enemy/sounds/footsteps/enemy_footsteps_3.wav" id="5_61ikd"]
 
@@ -26,15 +27,12 @@ stream_0/stream = ExtResource("3_4wwj3")
 stream_1/stream = ExtResource("4_d50e0")
 stream_2/stream = ExtResource("5_61ikd")
 
-[node name="Enemy" type="Sprite2D" unique_id=627184935]
+[node name="Enemy" type="Sprite2D" unique_id=627184935 node_paths=PackedStringArray("FootstepsSound")]
 z_index = 2
 texture = SubResource("AtlasTexture_1bvp3")
-script = ExtResource("2_b4nis")
-move_tick_sec = 0.15
-switch_modes = false
-min_switch_delay_sec = 5.0
-max_switch_delay_sec = 60.0
-smart = true
+script = ExtResource("2_4wwj3")
+FootstepsSound = NodePath("FootstepsSounds")
+PathLineScene = ExtResource("3_d50e0")
 
 [node name="PointLight2D" type="PointLight2D" parent="." unique_id=1070151898]
 visible = false

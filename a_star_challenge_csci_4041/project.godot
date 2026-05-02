@@ -21,7 +21,7 @@ buses/default_bus_layout="uid://gpuivooj72n2"
 
 [autoload]
 
-Game="*uid://t13ghe7d8rdf"
+Game="*uid://clw7dhg5lh45h"
 
 [debug]
 
@@ -33,7 +33,6 @@ gdscript/warnings/narrowing_conversion=0
 [display]
 
 window/size/viewport_height=640
-window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [dotnet]

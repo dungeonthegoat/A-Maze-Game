@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c5vy355ik3o2a"]
 
-[ext_resource type="Script" uid="uid://chsnljh8f0s7" path="res://entities/key/key.gd" id="1_b860a"]
 [ext_resource type="Texture2D" uid="uid://diojsb8j8nqng" path="res://entities/key/key.png" id="1_li0q2"]
+[ext_resource type="Script" uid="uid://cr4swtdkhyqab" path="res://entities/key/MapKey.cs" id="1_yymwm"]
 [ext_resource type="AudioStream" uid="uid://dxof1vkpil67n" path="res://entities/key/pickup_key.wav" id="3_yymwm"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_li0q2"]
@@ -153,6 +153,20 @@ tracks/4/keys = {
 "update": 0,
 "values": [2.0, 0.0]
 }
+tracks/5/type = "method"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath(".")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0.5),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"queue_free"
+}]
+}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_yymwm"]
 _data = {
@@ -165,11 +179,14 @@ random_pitch = 1.2599211
 streams_count = 1
 stream_0/stream = ExtResource("3_yymwm")
 
-[node name="Key" type="Area2D" unique_id=656628658]
+[node name="Key" type="Area2D" unique_id=656628658 node_paths=PackedStringArray("AnimPlayer", "OuterSprite", "Light")]
 collision_layer = 0
 collision_mask = 2
 monitorable = false
-script = ExtResource("1_b860a")
+script = ExtResource("1_yymwm")
+AnimPlayer = NodePath("AnimationPlayer")
+OuterSprite = NodePath("Sprites/OuterSprite")
+Light = NodePath("Sprites/Glow")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=585372140]
 shape = SubResource("CircleShape2D_li0q2")

@@ -1,22 +1,23 @@
 [gd_scene format=3 uid="uid://c4q87vvihwthr"]
 
-[ext_resource type="Script" uid="uid://b7euxrd4xv1qs" path="res://entities/player/player_camera.gd" id="1_h2yge"]
+[ext_resource type="Script" uid="uid://dl2mwmbbxoxnj" path="res://GameManager.cs" id="1_4c57u"]
 [ext_resource type="Texture2D" uid="uid://cfsk3owhpu6f0" path="res://entities/game_sprites.png" id="1_ig7tw"]
-[ext_resource type="Script" uid="uid://cusotysjucmfr" path="res://main.gd" id="1_lquwl"]
-[ext_resource type="Script" uid="uid://cp2libx2o85km" path="res://map/map.gd" id="2_1bvp3"]
-[ext_resource type="Script" uid="uid://cc1umciyajukw" path="res://map/maze_generation/Maze.cs" id="2_4c57u"]
+[ext_resource type="Script" uid="uid://cc1umciyajukw" path="res://map/maze_generation/Maze.cs" id="2_efxa6"]
 [ext_resource type="AudioStream" uid="uid://da4bykwrfejak" path="res://entities/enemy/sounds/capture.wav" id="2_lquwl"]
+[ext_resource type="Script" uid="uid://dbm8wvgvybqk6" path="res://entities/player/PlayerCamera.cs" id="3_4c57u"]
 [ext_resource type="Texture2D" uid="uid://diojsb8j8nqng" path="res://entities/key/key.png" id="4_5vw27"]
 [ext_resource type="FontFile" uid="uid://dmkvgi8ifxdgx" path="res://gui/ari-w9500.ttf" id="4_272bh"]
-[ext_resource type="Script" uid="uid://dva0888t7l027" path="res://gui/key_label.gd" id="6_kek77"]
+[ext_resource type="Script" uid="uid://dwpcwokg6scj" path="res://map/GameMap.cs" id="5_4c57u"]
+[ext_resource type="PackedScene" uid="uid://ceu354p11d0if" path="res://entities/player/player.tscn" id="6_w48qg"]
+[ext_resource type="PackedScene" uid="uid://cidtv8w4mv6nh" path="res://entities/enemy/enemy.tscn" id="7_vivmo"]
+[ext_resource type="PackedScene" uid="uid://c5vy355ik3o2a" path="res://entities/key/key.tscn" id="8_2cqfq"]
 [ext_resource type="AudioStream" uid="uid://bovxelie22hmn" path="res://entities/key/victory_chime.wav" id="8_4c57u"]
+[ext_resource type="Script" uid="uid://cg02crvldxl6d" path="res://gui/KeyLabel.cs" id="8_kek77"]
+[ext_resource type="PackedScene" uid="uid://ge4h8fa17kpc" path="res://entities/lamp/lamp.tscn" id="9_yaehf"]
 
-[sub_resource type="Resource" id="Resource_4c57u"]
-script = ExtResource("2_4c57u")
-Size = Vector2i(200, 200)
-MakePerfect = true
-MinLoopSize = 30
-LoopCountScale = 1.0
+[sub_resource type="Resource" id="Resource_dg77c"]
+script = ExtResource("2_efxa6")
+Size = Vector2i(64, 64)
 metadata/_custom_type_script = "uid://cc1umciyajukw"
 
 [sub_resource type="Environment" id="Environment_h2yge"]
@@ -322,13 +323,12 @@ _data = {
 &"collect": SubResource("Animation_kek77")
 }
 
-[node name="Main" type="Node2D" unique_id=1050225579 node_paths=PackedStringArray("map")]
-script = ExtResource("1_lquwl")
-keys_required = 10
-enemy_count = 1
-maze_parameters = SubResource("Resource_4c57u")
-enemy_spawn_count_on_key_pickup = 1
-map = NodePath("Map")
+[node name="Main" type="Node2D" unique_id=1050225579 node_paths=PackedStringArray("Map", "GameEndAnimationPlayer")]
+script = ExtResource("1_4c57u")
+EnemyCount = 1
+MazeParameters = SubResource("Resource_dg77c")
+Map = NodePath("Map")
+GameEndAnimationPlayer = NodePath("GUI/EndGameAnimation")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1370816940]
 environment = SubResource("Environment_h2yge")
@@ -339,14 +339,21 @@ color = Color(0, 0, 0, 1)
 
 [node name="PlayerCamera" type="Camera2D" parent="." unique_id=209801157]
 unique_name_in_owner = true
-zoom = Vector2(0.4, 0.4)
-script = ExtResource("1_h2yge")
+zoom = Vector2(3, 3)
+script = ExtResource("3_4c57u")
+FollowPlayer = true
+Smoothing = 20.0
 
-[node name="Map" type="TileMapLayer" parent="." unique_id=1622251131]
+[node name="Map" type="TileMapLayer" parent="." unique_id=1622251131 node_paths=PackedStringArray("Camera")]
 z_index = -5
 tile_set = SubResource("TileSet_h2yge")
 rendering_quadrant_size = 64
-script = ExtResource("2_1bvp3")
+script = ExtResource("5_4c57u")
+PlayerScene = ExtResource("6_w48qg")
+EnemyScene = ExtResource("7_vivmo")
+KeyScene = ExtResource("8_2cqfq")
+LampScene = ExtResource("9_yaehf")
+Camera = NodePath("../PlayerCamera")
 
 [node name="GUI" type="CanvasLayer" parent="." unique_id=395506496]
 
@@ -427,7 +434,7 @@ size_flags_vertical = 1
 text = "0/5"
 label_settings = SubResource("LabelSettings_5vw27")
 vertical_alignment = 1
-script = ExtResource("6_kek77")
+script = ExtResource("8_kek77")
 
 [node name="KeyAnimation" type="AnimationPlayer" parent="GUI/MarginContainer/HBoxContainer/KeyLabel" unique_id=1765427260]
 root_node = NodePath("../../../..")

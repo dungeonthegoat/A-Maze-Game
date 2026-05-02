@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://ceu354p11d0if"]
 
 [ext_resource type="Texture2D" uid="uid://cfsk3owhpu6f0" path="res://entities/game_sprites.png" id="1_b0kkn"]
-[ext_resource type="Script" uid="uid://bmucmcsls844w" path="res://entities/player/player.gd" id="2_e4p34"]
+[ext_resource type="Script" uid="uid://cll4tlxmw2lr2" path="res://entities/player/Player.cs" id="2_fkugw"]
 [ext_resource type="AudioStream" uid="uid://bpydoxvp5lxuy" path="res://entities/player/sounds/footsteps/footsteps_1.wav" id="3_fkugw"]
 [ext_resource type="AudioStream" uid="uid://c8e2qe1kmntnd" path="res://entities/player/sounds/footsteps/footsteps_3.wav" id="4_8fjmc"]
 [ext_resource type="AudioStream" uid="uid://tnkdnycuicdy" path="res://entities/player/sounds/footsteps/footsteps_2.wav" id="5_qiwj3"]
@@ -29,10 +29,11 @@ stream_2/stream = ExtResource("5_qiwj3")
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fkugw"]
 size = Vector2(16, 16)
 
-[node name="Player" type="Sprite2D" unique_id=1227592828]
+[node name="Player" type="Sprite2D" unique_id=1227592828 node_paths=PackedStringArray("footstepsSounds")]
 z_index = 2
 texture = SubResource("AtlasTexture_0xm2m")
-script = ExtResource("2_e4p34")
+script = ExtResource("2_fkugw")
+footstepsSounds = NodePath("FootstepsSounds")
 
 [node name="PlayerLight" type="PointLight2D" parent="." unique_id=213265205]
 color = Color(0.33999997, 0.7250001, 1, 1)
