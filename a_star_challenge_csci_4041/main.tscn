@@ -17,7 +17,8 @@
 
 [sub_resource type="Resource" id="Resource_dg77c"]
 script = ExtResource("2_efxa6")
-Size = Vector2i(64, 64)
+Size = Vector2i(50, 50)
+LoopCountScale = 1.0
 metadata/_custom_type_script = "uid://cc1umciyajukw"
 
 [sub_resource type="Environment" id="Environment_h2yge"]
@@ -325,7 +326,7 @@ _data = {
 
 [node name="Main" type="Node2D" unique_id=1050225579 node_paths=PackedStringArray("Map", "GameEndAnimationPlayer")]
 script = ExtResource("1_4c57u")
-EnemyCount = 1
+LampCount = 40
 MazeParameters = SubResource("Resource_dg77c")
 Map = NodePath("Map")
 GameEndAnimationPlayer = NodePath("GUI/EndGameAnimation")
@@ -334,7 +335,6 @@ GameEndAnimationPlayer = NodePath("GUI/EndGameAnimation")
 environment = SubResource("Environment_h2yge")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=417070095]
-visible = false
 color = Color(0, 0, 0, 1)
 
 [node name="PlayerCamera" type="Camera2D" parent="." unique_id=209801157]
@@ -342,7 +342,7 @@ unique_name_in_owner = true
 zoom = Vector2(3, 3)
 script = ExtResource("3_4c57u")
 FollowPlayer = true
-Smoothing = 20.0
+Smoothing = 10.0
 
 [node name="Map" type="TileMapLayer" parent="." unique_id=1622251131 node_paths=PackedStringArray("Camera")]
 z_index = -5
@@ -428,13 +428,14 @@ layout_mode = 2
 texture = SubResource("AtlasTexture_kek77")
 expand_mode = 2
 
-[node name="KeyLabel" type="Label" parent="GUI/MarginContainer/HBoxContainer" unique_id=1524768551]
+[node name="KeyLabel" type="Label" parent="GUI/MarginContainer/HBoxContainer" unique_id=1524768551 node_paths=PackedStringArray("KeyAnim")]
 layout_mode = 2
 size_flags_vertical = 1
 text = "0/5"
 label_settings = SubResource("LabelSettings_5vw27")
 vertical_alignment = 1
 script = ExtResource("8_kek77")
+KeyAnim = NodePath("KeyAnimation")
 
 [node name="KeyAnimation" type="AnimationPlayer" parent="GUI/MarginContainer/HBoxContainer/KeyLabel" unique_id=1765427260]
 root_node = NodePath("../../../..")
@@ -442,11 +443,12 @@ libraries/ = SubResource("AnimationLibrary_4c57u")
 
 [node name="VictoryAudio" type="AudioStreamPlayer" parent="GUI" unique_id=825747784]
 stream = ExtResource("8_4c57u")
-volume_db = -2.0
+volume_db = -4.0
 bus = &"Ambient"
 
 [node name="Background" type="CanvasLayer" parent="." unique_id=29173924]
 layer = -1
+visible = false
 
 [node name="ColorRect" type="ColorRect" parent="Background" unique_id=97319874]
 anchors_preset = 15

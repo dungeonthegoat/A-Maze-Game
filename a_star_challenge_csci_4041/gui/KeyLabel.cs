@@ -14,6 +14,16 @@ public partial class KeyLabel : Label
         Game.Instance.KeysUpdated += OnKeysUpdated;
     }
 
+    public override void _ExitTree()
+    {
+        if (Game.Instance != null)
+        {
+            Game.Instance.KeysUpdated -= OnKeysUpdated;
+        }
+
+        base._ExitTree();
+    }
+
 
     private void OnKeysUpdated(int keys, int maxKeys)
     {

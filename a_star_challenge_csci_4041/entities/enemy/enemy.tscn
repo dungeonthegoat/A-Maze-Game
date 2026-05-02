@@ -31,6 +31,12 @@ stream_2/stream = ExtResource("5_61ikd")
 z_index = 2
 texture = SubResource("AtlasTexture_1bvp3")
 script = ExtResource("2_4wwj3")
+MoveTickSec = 0.15
+MoveProbability = 0.4
+MoveStepSize = 2
+SwitchMovement = true
+MaxSwitchDelaySec = 30.0
+UseSmartPaths = true
 FootstepsSound = NodePath("FootstepsSounds")
 PathLineScene = ExtResource("3_d50e0")
 

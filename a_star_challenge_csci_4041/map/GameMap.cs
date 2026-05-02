@@ -57,13 +57,15 @@ public partial class GameMap : TileMapLayer
     /// <param name="maze">The maze to display and generate things in.</param>
     public void GenerateMaze(int keyCount, int lightCount, int enemyCount, List<Edge> edges)
     {
+        List<Vector2I> spawnPoints = GetSpawnPoints(edges);
+
         DisplayEdges(edges);
         InitNeighbors(edges);
-        SpawnPlayer(edges);
-        SpawnEnemies(enemyCount, edges);
-        SpawnKeys(keyCount, edges);
-        SpawnLamps(lightCount, edges);
-        GD.Print("Spawned everything");
+
+        SpawnPlayer(spawnPoints);
+        SpawnEnemies(enemyCount, spawnPoints);
+        SpawnKeys(keyCount, spawnPoints);
+        SpawnLamps(lightCount, spawnPoints);
     }
 
     public Dictionary<Vector2I, int> GetPenaltyMap(Enemy enemy)
@@ -89,7 +91,7 @@ public partial class GameMap : TileMapLayer
         return penaltyMap;
     }
 
-    public void SpawnEnemies(int count, List<Edge> edges)
+    public void SpawnEnemies(int count, List<Vector2I> spawnPoints)
     {
         if (count == 0) return;
 
@@ -97,16 +99,20 @@ public partial class GameMap : TileMapLayer
 
         for (int _i = 0; _i < count; _i++)
         {
+            if (spawnPoints.Count == 0) return;
+
+            int idx = 0;
             Vector2I spawnPoint = Vector2I.Zero;
             int dist = 0;
 
             while (dist <= minDistFromPlayer)
             {
-                spawnPoint = edges[GD.RandRange(1, edges.Count - 1)].From * 2 - GetTileOffset();
+                idx = GD.RandRange(1, spawnPoints.Count - 1);
+                spawnPoint = spawnPoints[idx] * 2 - GetTileOffset();
                 dist = Distance(spawnPoint, _currentPlayer.GridPos);
             }
 
-            Enemy enemy = (Enemy)EnemyScene.Instantiate();
+            Enemy enemy = EnemyScene.Instantiate<Enemy>();
             enemy.Map = this;
             GetTree().CurrentScene.AddChild(enemy);
 
@@ -115,74 +121,49 @@ public partial class GameMap : TileMapLayer
             enemy.TargetPlayer = _currentPlayer;
 
             _enemies.Add(enemy);
+
+            spawnPoints.RemoveAt(idx);
         }
     }
 
-    private void SpawnPlayer(List<Edge> edges)
+    private void SpawnPlayer(List<Vector2I> spawnPoints)
     {
-        Player newPlayer = (Player)PlayerScene.Instantiate();
-        newPlayer.Map = this;
-        GetTree().CurrentScene.AddChild(newPlayer);
+        _currentPlayer = PlayerScene.Instantiate<Player>();
+        _currentPlayer.Map = this;
+        GetTree().CurrentScene.AddChild(_currentPlayer);
 
-        newPlayer.GridPos = edges[0].From * 2 - GetTileOffset();
-        newPlayer.Position = MapToLocal(newPlayer.GridPos);
-        Camera.TargetPlayer = newPlayer;
+        _currentPlayer.GridPos = spawnPoints[0] * 2 - GetTileOffset();
+        _currentPlayer.Position = MapToLocal(_currentPlayer.GridPos);
+        Camera.TargetPlayer = _currentPlayer;
         if (Camera.FollowPlayer)
         {
-            Camera.Position = newPlayer.Position;
+            Camera.Position = _currentPlayer.Position;
         }
+
+        spawnPoints.RemoveAt(0);
     }
 
-    private void SpawnKeys(int count, List<Edge> edges)
+    private void SpawnKeys(int count, List<Vector2I> spawnPoints)
     {
         if (count == 0) return;
-
-        List<Vector2I> spawnPoints = new();
-        HashSet<Vector2I> usedSpawnPoints = new();
-        foreach (Edge edge in edges)
-        {
-            if (!usedSpawnPoints.Contains(edge.From))
-            {
-                usedSpawnPoints.Add(edge.From);
-                spawnPoints.Add(edge.From);
-            }
-            if (!usedSpawnPoints.Contains(edge.To))
-            {
-                usedSpawnPoints.Add(edge.To);
-                spawnPoints.Add(edge.To);
-            }
-        }
 
         for (int _i = 0; _i < count; _i++)
         {
             if (spawnPoints.Count == 0) return;
 
             int randIdx = GD.RandRange(0, spawnPoints.Count - 1);
-            MapKey key = (MapKey)KeyScene.Instantiate();
+
+            MapKey key = KeyScene.Instantiate<MapKey>();
             key.Position = MapToLocal(spawnPoints[randIdx] * 2 - GetTileOffset());
             GetTree().CurrentScene.AddChild(key);
+
+            spawnPoints.RemoveAt(randIdx);
         }
     }
 
-    private void SpawnLamps(int count, List<Edge> edges)
+    private void SpawnLamps(int count, List<Vector2I> spawnPoints)
     {
         if (count == 0) return;
-
-        List<Vector2I> spawnPoints = new();
-        HashSet<Vector2I> usedSpawnPoints = new();
-        foreach (Edge edge in edges)
-        {
-            if (!usedSpawnPoints.Contains(edge.From))
-            {
-                usedSpawnPoints.Add(edge.From);
-                spawnPoints.Add(edge.From);
-            }
-            if (!usedSpawnPoints.Contains(edge.To))
-            {
-                usedSpawnPoints.Add(edge.To);
-                spawnPoints.Add(edge.To);
-            }
-        }
 
         for (int _i = 0; _i < count; _i++)
         {
@@ -230,7 +211,7 @@ public partial class GameMap : TileMapLayer
         {
             for (int y = -Resolution.Y; y < Resolution.Y; y++)
             {
-                SetCell(new Vector2I(x, y), 0, Vector2I.Left);
+                SetCell(new Vector2I(x, y), 0, Vector2I.Right);
             }
         }
 
@@ -253,5 +234,26 @@ public partial class GameMap : TileMapLayer
     private int Distance(Vector2I p1, Vector2I p2)
     {
         return Math.Abs(p1.X - p2.X) + Math.Abs(p1.Y - p2.Y);
+    }
+
+    public static List<Vector2I> GetSpawnPoints(List<Edge> edges)
+    {
+        List<Vector2I> spawnPoints = new();
+        HashSet<Vector2I> usedSpawnPoints = new();
+        foreach (Edge edge in edges)
+        {
+            if (!usedSpawnPoints.Contains(edge.From))
+            {
+                usedSpawnPoints.Add(edge.From);
+                spawnPoints.Add(edge.From);
+            }
+            if (!usedSpawnPoints.Contains(edge.To))
+            {
+                usedSpawnPoints.Add(edge.To);
+                spawnPoints.Add(edge.To);
+            }
+        }
+
+        return spawnPoints;
     }
 }

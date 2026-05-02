@@ -3,192 +3,67 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Transactions;
 
 [GlobalClass]
 public partial class PathfindingService : Node
 {
-    public class Cell
-    {
-        public Cell Prev;
-        public Vector2I Position;
-        public int Idx;
-
-        public float FCost;
-        public float HCost;
-        public float GCost;
-
-        public Cell(Vector2I newPos, float g, float h, Cell prevCell)
-        {
-            Position = newPos;
-            Prev = prevCell;
-
-            GCost = g;
-            HCost = h;
-            FCost = h + g;
-        }
-    }
-
-    public class CellHeap
-    {
-        public List<Cell> Heap = new();
-        public Dictionary<Vector2I, Cell> Map = new();
-
-        public bool IsEmpty()
-        {
-            return Heap.Count == 0;
-        }
-
-        public void Insert(Cell cell)
-        {
-            Heap.Add(cell);
-            cell.Idx = Heap.Count - 1;
-            Map[cell.Position] = cell;
-            ShiftUp(cell.Idx);
-        }
-
-        public Cell Pop()
-        {
-            if (IsEmpty()) return null;
-            
-            Cell root = Heap[0];
-            Map.Remove(root.Position);
-            
-            Cell last = Heap[Heap.Count - 1];
-            Heap.RemoveAt(Heap.Count - 1);
-            if (Heap.Count > 0)
-            {
-                Heap[0] = last;
-                last.Idx = 0;
-                ShiftDown(0);
-            }
-
-            return root;
-        }
-
-        public void ShiftUp(int Idx)
-        {
-            while (Idx > 0)
-            {
-                int parI = (Idx - 1) / 2;
-
-                float currF = Heap[Idx].FCost;
-                float currH = Heap[Idx].HCost;
-                float parF = Heap[parI].FCost;
-                float parH = Heap[parI].HCost;
-
-                if (currF < parF || (currF == parH && currH < parH))
-                {
-                    Swap(Idx, parI);
-                    Idx = parI;
-                }
-                else break;
-            }
-        }
-
-        public void ShiftDown(int Idx)
-        {
-            while (true)
-            {
-                int smallest = Idx;
-                int left = 2 * Idx + 1;
-                int right = left + 1;
-
-                float smallF = Heap[smallest].FCost;
-                float smallH = Heap[smallest].HCost;
-
-                if (left < Heap.Count)
-                {
-                    float leftF = Heap[left].FCost;
-                    if (leftF < smallF || (leftF == smallF && Heap[left].HCost < smallH))
-                    {
-                        smallest = left;
-                        smallF = leftF;
-                        smallH = Heap[left].HCost;
-                    }
-                }
-
-                if (right < Heap.Count)
-                {
-                    float rightF = Heap[right].FCost;
-                    if (rightF < smallF || (rightF == smallF && Heap[right].HCost < smallH))
-                    {
-                        smallest = right;
-                        smallF = rightF;
-                        smallH = Heap[right].HCost;
-                    }
-                }
-
-                if (smallest != Idx)
-                {
-                    Swap(smallest, Idx);
-                    Idx = smallest;
-                }
-                else break;
-            }
-        }
-
-        private void Swap(int i1, int i2)
-        {
-            Cell temp = Heap[i1];
-            Heap[i1] = Heap[i2];
-            Heap[i2] = temp;
-            Heap[i1].Idx = i1;
-            Heap[i2].Idx = i2;
-        }
-    }
-
     private const int PenaltyWeight = 5;
     private const int MaxDepth = 1000000;
 
     public static List<Vector2I> Pathfind(Vector2I start, Vector2I goal, Dictionary<Vector2I, List<Vector2I>> neighborMap, float greediness, Dictionary<Vector2I, int> penaltyMap)
     {
-        Cell startCell = new Cell(start, 0, Distance(start, goal), null);
-        CellHeap openCells = new();
-        openCells.Insert(startCell);
-        HashSet<Vector2I> closedPositions = new();
-        Cell current;
+        // Create a priority queue with the first cell in it
+        var openSet = new PriorityQueue<Vector2I, float>();
+        openSet.Enqueue(start, 0);
 
-        // The closest cell is tracked to prevent the algorithm from searching too far
-        Cell closestCell = startCell;
+        // A dictionary of every node's g score
+        var gScores = new Dictionary<Vector2I, float>();
+        gScores[start] = 0;
+
+        // A dictionary representing where each node came from
+        var cameFrom = new Dictionary<Vector2I, Vector2I>();
+
+        // Keep track of the closest node for depth limiting
+        Vector2I closestNode = start;
+        float closestDist = Distance(start, goal);
+
         int iterations = 0;
 
-        while (!openCells.IsEmpty())
+        while (openSet.Count > 0)
         {
-            current = openCells.Pop();
+            Vector2I current = openSet.Dequeue();
             iterations++;
 
-            if (current.HCost < closestCell.HCost) closestCell = current;
-
-            if (current.Position == goal || iterations >= MaxDepth)
+            // Update the closest node/dist
+            int currentDist = Distance(current, goal);
+            if (currentDist < closestDist)
             {
-                return ReconstructPath(current);
+                closestDist = currentDist;
+                closestNode = current;
             }
 
-            closedPositions.Add(current.Position);
+            // If we reached the goal, return the path
+            if (current == goal) return ReconstructPath(cameFrom, current);
 
-            foreach (Vector2I neighborPos in neighborMap[current.Position])
+            // If depth limit was exceeded, return the closest path
+            if (iterations > MaxDepth) return ReconstructPath(cameFrom, closestNode);
+
+            if (!neighborMap.ContainsKey(current)) continue;
+
+            foreach (Vector2I neighbor in neighborMap[current])
             {
-                if (closedPositions.Contains(neighborPos)) continue;
+                int penalty = penaltyMap.ContainsKey(neighbor) ? penaltyMap[neighbor] : 0;
+                float g = gScores[current] + 1f + (penalty * PenaltyWeight);
 
-                int penalty = 0;
-                if (penaltyMap.ContainsKey(neighborPos)) penalty = penaltyMap[neighborPos];
-
-                float g = current.GCost + 1f + (penalty * PenaltyWeight);
-                float h = (float)Distance(neighborPos, goal) * greediness;
-
-                if (openCells.Map.ContainsKey(neighborPos))
+                if (!gScores.ContainsKey(neighbor) || g < gScores[neighbor])
                 {
-                    Cell existingCell = openCells.Map[neighborPos];
-                    if (g < existingCell.GCost)
-                    {
-                        existingCell.GCost = g;
-                        existingCell.FCost = g + h;
-                        existingCell.Prev = current;
-                        openCells.ShiftUp(existingCell.Idx);
-                    }
-                } else
-                {
-                    openCells.Insert(new Cell(neighborPos, g, h, current));
+                    cameFrom[neighbor] = current;
+                    gScores[neighbor] = g;
+
+                    float f = g + Distance(neighbor, goal) * greediness;
+
+                    openSet.Enqueue(neighbor, f);
                 }
             }
         }
@@ -196,21 +71,31 @@ public partial class PathfindingService : Node
         return [];
     }
 
-    private static List<Vector2I> ReconstructPath(Cell cell)
+    /// <summary>
+    /// Walks backwards from some node to try to reach the start again
+    /// </summary>
+    /// <param name="cell"></param>
+    /// <returns></returns>
+    private static List<Vector2I> ReconstructPath(Dictionary<Vector2I, Vector2I> cameFrom, Vector2I node)
     {
-        List<Vector2I> path = new();
-        Cell current = cell;
+        var path = new List<Vector2I> { node };
 
-        while (current != null)
+        while (cameFrom.ContainsKey(node))
         {
-            path.Add(current.Position);
-            current = current.Prev;
+            node = cameFrom[node];
+            path.Add(node);
         }
 
         path.Reverse();
         return path;
     }
 
+    /// <summary>
+    /// Calculates the taxicab distance between two points
+    /// </summary>
+    /// <param name="p1"></param>
+    /// <param name="p2"></param>
+    /// <returns></returns>
     private static int Distance(Vector2I p1, Vector2I p2)
     {
         return System.Math.Abs(p1.X - p2.X) + System.Math.Abs(p1.Y - p2.Y);

@@ -27,6 +27,6 @@ public partial class MapKey : Area2D
 
         _collected = true;
         AnimPlayer.Play("collect");
-        EmitSignal(Game.SignalName.KeyCollected);
+        Game.Instance.EmitSignal(Game.SignalName.KeyCollected);
     }
 }

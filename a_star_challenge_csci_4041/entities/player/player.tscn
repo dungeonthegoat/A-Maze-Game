@@ -39,11 +39,13 @@ footstepsSounds = NodePath("FootstepsSounds")
 color = Color(0.33999997, 0.7250001, 1, 1)
 energy = 0.2
 shadow_enabled = true
+shadow_filter = 2
 texture = SubResource("GradientTexture2D_e4p34")
 
 [node name="VisibilityLight" type="PointLight2D" parent="." unique_id=494162960]
 energy = 1.25
 shadow_enabled = true
+shadow_filter = 2
 texture = SubResource("GradientTexture2D_e4p34")
 texture_scale = 5.0
 

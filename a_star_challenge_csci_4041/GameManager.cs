@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 public partial class GameManager : Node2D
@@ -30,12 +31,24 @@ public partial class GameManager : Node2D
 
     public override void _Ready()
     {
-        EmitSignal(Game.SignalName.KeysUpdated, _keysCollected, KeysRequired);
-        Game.Instance.KeyCollected += KeyCollected;
+        Game.Instance.EmitSignal(Game.SignalName.KeysUpdated, _keysCollected, KeysRequired);
+        Game.Instance.KeyCollected += OnKeyCollected;
         Game.Instance.PlayerCaught += GameLost;
 
         StartGame();
     }
+
+    public override void _ExitTree()
+    {
+        if (Game.Instance != null)
+        {
+            Game.Instance.PlayerCaught -= GameLost;
+            Game.Instance.KeyCollected -= OnKeyCollected;
+        }
+
+        base._ExitTree();
+    }
+
 
     private void StartGame()
     {
@@ -43,17 +56,18 @@ public partial class GameManager : Node2D
         Map.Resolution = MazeParameters.Size;
         Map.GenerateMaze(KeysRequired, LampCount, EnemyCount, MazeParameters.MazeEdges);
 
-        EmitSignal(Game.SignalName.GameStarted);
+        Game.Instance.EmitSignal(Game.SignalName.GameStarted);
     }
 
-    private void KeyCollected()
+    private void OnKeyCollected()
     {
         _keysCollected++;
         if (_keysCollected >= KeysRequired) GameWon();
 
         if (EnemySpawnsOnKeys > 0 && _keysCollected < KeysRequired)
         {
-            Map.SpawnEnemies(EnemySpawnsOnKeys, MazeParameters.MazeEdges);
+            List<Vector2I> spawnPoints = GameMap.GetSpawnPoints(MazeParameters.MazeEdges);
+            Map.SpawnEnemies(EnemySpawnsOnKeys, spawnPoints);
         }
 
         Game.Instance.EmitSignal(Game.SignalName.KeysUpdated, _keysCollected, KeysRequired);

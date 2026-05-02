@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Versioning;
 
@@ -23,7 +24,7 @@ public partial class Maze : Resource
     private List<Edge> _edges = new();
     public List<Edge> MazeEdges = new();
 
-    public Godot.Collections.Array<Edge> GenerateMaze()
+    public List<Edge> GenerateMaze()
     {
         if (Size.X < MinSize || Size.Y < MinSize)
         {
@@ -31,15 +32,16 @@ public partial class Maze : Resource
             return [];
         }
 
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
         MazeEdges.Clear();
         GenerateWeightedLattice();
         FindMinimumSpanningEdges();
 
-        return [..MazeEdges];
-    }
+        stopwatch.Stop();
+        GD.Print($"Generated maze in {stopwatch.ElapsedMilliseconds} milliseconds");
 
-    public Godot.Collections.Array<Edge> GetGodotEdges()
-    {
         return [..MazeEdges];
     }
 
@@ -48,21 +50,20 @@ public partial class Maze : Resource
     /// </summary>
     private List<Edge> FindMinimumSpanningEdges()
     {
-        MinHeap cheapestCost = new MinHeap();
-        Dictionary<Vector2I, Edge> cheapestEdge = new Dictionary<Vector2I, Edge>();
+        var openSet = new PriorityQueue<Vector2I, float>();
+        var cheapestEdge = new Dictionary<Vector2I, Edge>();
 
         // A hash set containing every vertex that has been explored
-        HashSet<Vector2I> explored = new HashSet<Vector2I>();
+        var explored = new HashSet<Vector2I>();
 
         // The dictionary containing every vertex's connected edges
-        Dictionary<Vector2I, List<Edge>> adjEdges = new Dictionary<Vector2I, List<Edge>>();
+        var adjEdges = new Dictionary<Vector2I, List<Edge>>();
 
         // Each vertex should be initialized as:
             // 1. A cost of ∞
             // 2. No adjacent edges
         foreach (Vector2I vertex in _vertices)
         {
-            cheapestCost.Insert(new MinHeap.Vert(vertex, Mathf.Inf));
             adjEdges[vertex] = new List<Edge>();
         }
 
@@ -75,28 +76,26 @@ public partial class Maze : Resource
 
         // Starting vertex can be arbitrary
         Vector2I startVertex = _vertices[GD.RandRange(0, _vertices.Count - 1)];
-        cheapestCost.Insert(new MinHeap.Vert(startVertex, 0));
+        openSet.Enqueue(startVertex, 0f);
 
-        Vector2I currentVert;
-
-        while (!cheapestCost.IsEmpty())
+        while (openSet.Count > 0)
         {
-            currentVert = cheapestCost.Pop().Position;
+            Vector2I currentVert = openSet.Dequeue();
+
+            if (explored.Contains(currentVert)) continue;
             explored.Add(currentVert);
 
             foreach (Edge edge in adjEdges[currentVert])
             {
                 Vector2I neighbor = (edge.From == currentVert) ? edge.To : edge.From;
+                
                 if (explored.Contains(neighbor)) continue;
 
-                MinHeap.Vert neighborVert = cheapestCost.Map[neighbor];
-
                 // If the current edge is cheaper than the old one, replace it
-                if (edge.Weight < neighborVert.Weight)
+                if (!cheapestEdge.ContainsKey(neighbor) || edge.Weight < cheapestEdge[neighbor].Weight)
                 {
-                    neighborVert.Weight = edge.Weight;
-                    cheapestCost.ShiftUp(neighborVert.Idx);
                     cheapestEdge[neighbor] = edge;
+                    openSet.Enqueue(neighbor, edge.Weight);
                 }
             }
         }
@@ -141,10 +140,13 @@ public partial class Maze : Resource
                 unusedEdges.Add(edge);
             }
         }
-        unusedEdges.Sort((a, b) => GD.Randf().CompareTo(0.5f));
+        // unusedEdges.Sort((a, b) => GD.Randf().CompareTo(0.5f));
 
         int targetLoopCount = System.Math.Max(1, (int)(_edges.Count * LoopCountScale));
         int loopCounter = 0;
+
+        var searchQueue = new Queue<Vector2I>();
+        var visited = new HashSet<Vector2I>();
 
         // Loop through each unused edge and perform a breadth-first search
         while (loopCounter < targetLoopCount && unusedEdges.Count > 0)
@@ -155,10 +157,9 @@ public partial class Maze : Resource
             bool belowMinDist = false;
             int dist = 0;
             
-            Queue<Vector2I> searchQueue = new Queue<Vector2I>();
+            searchQueue.Clear();
             searchQueue.Enqueue(currentEdge.From);
-
-            HashSet<Vector2I> visited = new HashSet<Vector2I>();
+            visited.Clear();
 
             while (searchQueue.Count > 0 && dist < MinLoopSize)
             {

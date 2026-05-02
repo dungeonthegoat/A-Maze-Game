@@ -10,42 +10,55 @@ public partial class Enemy : GridEntity
     private int _currentStepCycle = 0; // The current cycle when using MoveInterval > 1
     private Timer _switchTimer = new();
     private Timer _moveTimer = new();
-    
+
+    [ExportGroup("Movement")]
+    [Export]
+    public bool IndependentMovement { get; set; } = false;
+
+    [Export]
+    public float MoveTickSec { get; set; } = 0.25f;
+
+    [Export]
+    public bool ShowPathLine { get; set; } = false;
+
+    [Export]
+    public int MoveInterval { get; set; } = 1;
+
+    [Export]
+    public float MoveProbability { get; set; } = 1f;
+
+    [Export]
+    public int MoveStepSize { get; set; } = 1;
+
+    [Export]
+    public bool SwitchMovement { get; set; } = false;
+
+    [Export]
+    public float MinSwitchDelaySec { get; set; } = 5f;    
+
+    [Export]
+    public float MaxSwitchDelaySec { get; set; } = 60f;
+
+    [ExportGroup("Pathfinding")]
+    [Export]
+    public bool UseSmartPaths { get; set; } = false;
+    [Export]
+    public float HeuristicWeight { get; set; } = 1f;
+
+    [ExportGroup("Nodes")]
     [Export]
     public AudioStreamPlayer2D FootstepsSound;
 
     [Export]
     public PackedScene PathLineScene { get; set; }
 
-    [Export]
-    public bool IndependentMovement { get; set; } = false;
-    [Export]
-    public float MoveTickSec { get; set; } = 0.25f;
-    [Export]
-    public bool ShowPathLine { get; set; } = false;
-    [Export]
-    public int MoveInterval { get; set; } = 1;
-    [Export]
-    public float MoveProbability { get; set; } = 1f;
-    [Export]
-    public int MoveStepSize { get; set; } = 1;
-
-    [Export]
-    public bool SwitchMovement { get; set; } = false;
-    [Export]
-    public float MinSwitchDelaySec { get; set; } = 5f;    
-    [Export]
-    public float MaxSwitchDelaySec { get; set; } = 60f;
-    [Export]
-    public bool UseSmartPaths { get; set; } = false;
-    [Export]
-    public float HeuristicWeight { get; set; } = 1f;
-
     public Player TargetPlayer;
     public List<Vector2I> CurrentPath = new();
 
     public override void _Ready()
     {
+        base._Ready();
+
         Game.Instance.PlayerMoved += PlayerMoved;
         GridPos = Map.LocalToMap(Position);
 
@@ -53,14 +66,14 @@ public partial class Enemy : GridEntity
         _pathLine = (Line2D)PathLineScene.Instantiate();
         _pathLine.SelfModulate = Color.FromHsv(GD.Randf(), 1f, 1f);
         _pathLine.Visible = ShowPathLine;
-        GetTree().CurrentScene.CallDeferred("AddChild", _pathLine);
+        GetTree().CurrentScene.AddChild(_pathLine);
 
         // Timer initializations
         _moveTimer.Autostart = true;
         _moveTimer.WaitTime = MoveTickSec;
         _moveTimer.OneShot = false;
         _moveTimer.Timeout += MoveTimeout;
-        CallDeferred("AddChild", _moveTimer);
+        AddChild(_moveTimer);
 
         if (SwitchMovement)
         {
@@ -68,14 +81,17 @@ public partial class Enemy : GridEntity
             _switchTimer.WaitTime = GetRandomDelayTime();
             _switchTimer.OneShot = true;
             _switchTimer.Timeout += SwitchTimeout;
-            CallDeferred("AddChild", _switchTimer);
+            AddChild(_switchTimer);
         }
-
-        base._Ready();
     }
 
     public override void _ExitTree()
     {
+        if (Game.Instance != null)
+        {
+            Game.Instance.PlayerMoved -= PlayerMoved;
+        }
+
         _pathLine.QueueFree();
 
         base._ExitTree();
@@ -99,7 +115,7 @@ public partial class Enemy : GridEntity
 
         if (CurrentPath.Count <= MoveStepSize)
         {
-            EmitSignal(Game.SignalName.PlayerCaught);
+            Game.Instance.EmitSignal(Game.SignalName.PlayerCaught);
             return;
         }
 
@@ -109,7 +125,7 @@ public partial class Enemy : GridEntity
 
         if (TargetPlayer.GridPos == GridPos)
         {
-            EmitSignal(Game.SignalName.PlayerCaught);
+            Game.Instance.EmitSignal(Game.SignalName.PlayerCaught);
             return;
         }
     }
@@ -118,7 +134,7 @@ public partial class Enemy : GridEntity
     {
         if (TargetPlayer.GridPos == GridPos)
         {
-            EmitSignal(Game.SignalName.PlayerCaught);
+            Game.Instance.EmitSignal(Game.SignalName.PlayerCaught);
             return;
         }
 

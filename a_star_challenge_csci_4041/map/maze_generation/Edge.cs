@@ -1,17 +1,16 @@
 using Godot;
 using System;
 
-[GlobalClass]
-public partial class Edge : RefCounted
+public readonly struct Edge
 {
-    public Vector2I From;
-    public Vector2I To;
-    public float Weight;
+    public readonly Vector2I From;
+    public readonly Vector2I To;
+    public readonly float Weight;
 
-    public Edge(Vector2I v1, Vector2I v2, float w)
+    public Edge(Vector2I from, Vector2I to, float weight)
     {
-        From = v1;
-        To = v2;
-        Weight = w;
+        From = from;
+        To = to;
+        Weight = weight;
     }
 }
