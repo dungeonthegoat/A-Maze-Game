@@ -17,7 +17,8 @@
 
 [sub_resource type="Resource" id="Resource_dg77c"]
 script = ExtResource("2_efxa6")
-Size = Vector2i(50, 50)
+Size = Vector2i(1000, 1000)
+MinLoopSize = 30
 LoopCountScale = 1.0
 metadata/_custom_type_script = "uid://cc1umciyajukw"
 
@@ -326,7 +327,9 @@ _data = {
 
 [node name="Main" type="Node2D" unique_id=1050225579 node_paths=PackedStringArray("Map", "GameEndAnimationPlayer")]
 script = ExtResource("1_4c57u")
-LampCount = 40
+KeysRequired = 4
+EnemyCount = 10
+LampCount = 20
 MazeParameters = SubResource("Resource_dg77c")
 Map = NodePath("Map")
 GameEndAnimationPlayer = NodePath("GUI/EndGameAnimation")
@@ -347,6 +350,7 @@ Smoothing = 10.0
 [node name="Map" type="TileMapLayer" parent="." unique_id=1622251131 node_paths=PackedStringArray("Camera")]
 z_index = -5
 tile_set = SubResource("TileSet_h2yge")
+occlusion_enabled = false
 rendering_quadrant_size = 64
 script = ExtResource("5_4c57u")
 PlayerScene = ExtResource("6_w48qg")
@@ -354,6 +358,7 @@ EnemyScene = ExtResource("7_vivmo")
 KeyScene = ExtResource("8_2cqfq")
 LampScene = ExtResource("9_yaehf")
 Camera = NodePath("../PlayerCamera")
+DebugMode = true
 
 [node name="GUI" type="CanvasLayer" parent="." unique_id=395506496]
 

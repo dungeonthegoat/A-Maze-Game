@@ -1,16 +1,8 @@
-; Engine configuration file.
-; It's best edited using the editor UI and not directly,
-; since the parameters that go here are not all obvious.
-;
-; Format:
-;   [section] ; section goes between []
-;   param=value ; assign values to parameters
-
 config_version=5
 
 [application]
 
-config/name="A-Star Challenge CSCI 4041"
+config/name="A Maze Game"
 run/main_scene="uid://c4q87vvihwthr"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 config/icon="uid://cf2nnhar1fq45"
@@ -33,7 +25,6 @@ gdscript/warnings/narrowing_conversion=0
 [display]
 
 window/size/viewport_height=640
-window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [dotnet]

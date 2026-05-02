@@ -40,7 +40,7 @@ public partial class Maze : Resource
         FindMinimumSpanningEdges();
 
         stopwatch.Stop();
-        GD.Print($"Generated maze in {stopwatch.ElapsedMilliseconds} milliseconds");
+        GD.Print($"Generated maze in {stopwatch.Elapsed.TotalMilliseconds} milliseconds");
 
         return [..MazeEdges];
     }
