@@ -29,8 +29,8 @@ func _ready() -> void:
 
 func _start_game() -> void:
 	# Generate the map
-	maze_parameters.generate_maze()
-	map.resolution = maze_parameters.size
+	maze_parameters.GenerateMaze()
+	map.resolution = maze_parameters.Size
 	map.generate_maze(keys_required, lamp_count, enemy_count, maze_parameters)
 	
 	Game.game_started.emit()
@@ -42,8 +42,8 @@ func _key_collected() -> void:
 		_game_won()
 	
 	if enemy_spawn_count_on_key_pickup > 0 and keys_collected < keys_required:
-		map.spawn_enemies(enemy_spawn_count_on_key_pickup)
-    
+		map.spawn_enemies(enemy_spawn_count_on_key_pickup, map.maze.GetGodotEdges())
+	
 	Game.keys_updated.emit(keys_collected, keys_required)
 
 
