@@ -31,8 +31,11 @@ stream_2/stream = ExtResource("5_61ikd")
 z_index = 2
 texture = SubResource("AtlasTexture_1bvp3")
 script = ExtResource("2_4wwj3")
-IndependentMovement = true
-MoveTickSec = 1.0
+MoveTickSec = 0.2
+MoveProbability = 0.9
+SwitchMovement = true
+MinSwitchDelaySec = 3.0
+MaxSwitchDelaySec = 30.0
 UseSmartPaths = true
 FootstepsSound = NodePath("FootstepsSounds")
 PathLineScene = ExtResource("3_d50e0")
@@ -46,7 +49,7 @@ texture = SubResource("GradientTexture2D_pqhw6")
 
 [node name="FootstepsSounds" type="AudioStreamPlayer2D" parent="." unique_id=1298112593]
 stream = SubResource("AudioStreamRandomizer_721x4")
-max_distance = 100.0
+max_distance = 150.0
 attenuation = 3.0
 max_polyphony = 5
 bus = &"Ambient"

@@ -14,11 +14,12 @@
 [ext_resource type="AudioStream" uid="uid://bovxelie22hmn" path="res://entities/key/victory_chime.wav" id="8_4c57u"]
 [ext_resource type="Script" uid="uid://cg02crvldxl6d" path="res://gui/KeyLabel.cs" id="8_kek77"]
 [ext_resource type="PackedScene" uid="uid://ge4h8fa17kpc" path="res://entities/lamp/lamp.tscn" id="9_yaehf"]
+[ext_resource type="Script" uid="uid://culj2qpmdpqtx" path="res://FpsLabel.cs" id="12_vivmo"]
 
 [sub_resource type="Resource" id="Resource_dg77c"]
 script = ExtResource("2_efxa6")
-Size = Vector2i(1000, 1000)
-MinLoopSize = 30
+Size = Vector2i(32, 32)
+MinLoopSize = 4
 LoopCountScale = 1.0
 metadata/_custom_type_script = "uid://cc1umciyajukw"
 
@@ -42,7 +43,7 @@ occlusion_layer_0/light_mask = 1
 sources/0 = SubResource("TileSetAtlasSource_0xm2m")
 
 [sub_resource type="Gradient" id="Gradient_h2yge"]
-colors = PackedColorArray(0, 0, 0, 0, 1, 1, 1, 0.42745098)
+colors = PackedColorArray(0, 0, 0, 0, 1, 1, 1, 0.5176471)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_1bvp3"]
 gradient = SubResource("Gradient_h2yge")
@@ -281,13 +282,15 @@ _data = {
 &"victory": SubResource("Animation_4c57u")
 }
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_kek77"]
-atlas = ExtResource("4_5vw27")
-region = Rect2(0, 0, 16, 16)
-
 [sub_resource type="LabelSettings" id="LabelSettings_5vw27"]
 font = ExtResource("4_272bh")
 font_size = 32
+shadow_color = Color(0, 0, 0, 0.25490198)
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kek77"]
+atlas = ExtResource("4_5vw27")
+region = Rect2(0, 0, 16, 16)
 
 [sub_resource type="Animation" id="Animation_5vw27"]
 length = 0.001
@@ -327,10 +330,11 @@ _data = {
 
 [node name="Main" type="Node2D" unique_id=1050225579 node_paths=PackedStringArray("Map", "GameEndAnimationPlayer")]
 script = ExtResource("1_4c57u")
-KeysRequired = 4
-EnemyCount = 10
-LampCount = 20
+KeysRequired = 6
+EnemyCount = 0
+LampCount = 50
 MazeParameters = SubResource("Resource_dg77c")
+EnemySpawnsOnKeys = 1
 Map = NodePath("Map")
 GameEndAnimationPlayer = NodePath("GUI/EndGameAnimation")
 
@@ -350,7 +354,6 @@ Smoothing = 10.0
 [node name="Map" type="TileMapLayer" parent="." unique_id=1622251131 node_paths=PackedStringArray("Camera")]
 z_index = -5
 tile_set = SubResource("TileSet_h2yge")
-occlusion_enabled = false
 rendering_quadrant_size = 64
 script = ExtResource("5_4c57u")
 PlayerScene = ExtResource("6_w48qg")
@@ -358,7 +361,6 @@ EnemyScene = ExtResource("7_vivmo")
 KeyScene = ExtResource("8_2cqfq")
 LampScene = ExtResource("9_yaehf")
 Camera = NodePath("../PlayerCamera")
-DebugMode = true
 
 [node name="GUI" type="CanvasLayer" parent="." unique_id=395506496]
 
@@ -411,6 +413,24 @@ stream = ExtResource("2_lquwl")
 volume_db = -4.0
 bus = &"Ambient"
 
+[node name="FPSLabel" type="Label" parent="GUI" unique_id=6242675]
+visible = false
+self_modulate = Color(1, 1, 1, 0.19215687)
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -60.0
+offset_top = 8.0
+offset_right = -11.0
+offset_bottom = 41.0
+grow_horizontal = 0
+size_flags_vertical = 1
+text = "N/A"
+label_settings = SubResource("LabelSettings_5vw27")
+horizontal_alignment = 2
+vertical_alignment = 1
+script = ExtResource("12_vivmo")
+
 [node name="MarginContainer" type="MarginContainer" parent="GUI" unique_id=2067945527]
 anchors_preset = 5
 anchor_left = 0.5
@@ -436,7 +456,7 @@ expand_mode = 2
 [node name="KeyLabel" type="Label" parent="GUI/MarginContainer/HBoxContainer" unique_id=1524768551 node_paths=PackedStringArray("KeyAnim")]
 layout_mode = 2
 size_flags_vertical = 1
-text = "0/5"
+text = "N/A"
 label_settings = SubResource("LabelSettings_5vw27")
 vertical_alignment = 1
 script = ExtResource("8_kek77")

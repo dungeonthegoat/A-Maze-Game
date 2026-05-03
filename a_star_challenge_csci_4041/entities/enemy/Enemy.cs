@@ -77,6 +77,7 @@ public partial class Enemy : GridEntity
 
         if (SwitchMovement)
         {
+            IndependentMovement = GD.Randf() > 0.5f;
             _switchTimer.Autostart = true;
             _switchTimer.WaitTime = GetRandomDelayTime();
             _switchTimer.OneShot = true;
@@ -110,7 +111,8 @@ public partial class Enemy : GridEntity
             TargetPlayer.GridPos,
             Map.NeighborMap,
             HeuristicWeight,
-            penaltyMap
+            penaltyMap,
+            Map.Resolution
         );
 
         if (CurrentPath.Count <= MoveStepSize)

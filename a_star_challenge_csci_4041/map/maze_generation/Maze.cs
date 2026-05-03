@@ -11,14 +11,33 @@ public partial class Maze : Resource
 {
     private const int MinSize = 5;
 
+    public enum MazeGenerationType
+    {
+        Random,
+        Mod3,
+        Mod6,
+        Ribs,
+        Radial,
+        Waffle
+    }
+
     // // The maze's preview image to be displayed in the editor
     // [Export] public ImageTexture Preview { get; set; }
     // The dimensions of the maze
-    [Export] public Vector2I Size { get; set; } = new(16, 16);
+    [Export]
+    public Vector2I Size { get; set; } = new(16, 16);
     // A perfect maze is a maze that contains no loops
-    [Export] public bool MakePerfect { get; set; } = false;
-    [Export] public int MinLoopSize = 10;
-    [Export] public float LoopCountScale = 0.1f;
+    [Export]
+    public bool MakePerfect { get; set; } = false;
+
+    [Export]
+    public int MinLoopSize = 10;
+
+    [Export]
+    public float LoopCountScale = 0.1f;
+
+    [Export]
+    public MazeGenerationType MazeType = MazeGenerationType.Random;
 
     private List<Vector2I> _vertices = new();
     private List<Edge> _edges = new();
@@ -222,13 +241,33 @@ public partial class Maze : Resource
                 // Add the edges
                 if (tempVerts.ContainsKey(currentPos + Vector2I.Left))
                 {
-                    _edges.Add(new Edge(currentPos, currentPos + Vector2I.Left, GD.Randf()));
+                    _edges.Add(new Edge(currentPos, currentPos + Vector2I.Left, GetEdgeWeight(x, y, scaledResolution)));
                 }
                 if (tempVerts.ContainsKey(currentPos + Vector2I.Up))
                 {
-                    _edges.Add(new Edge(currentPos, currentPos + Vector2I.Up, GD.Randf()));
+                    _edges.Add(new Edge(currentPos, currentPos + Vector2I.Up, GetEdgeWeight(x, y, scaledResolution)));
                 }
             }
         }
+    }
+
+    private float GetEdgeWeight(int x, int y, Vector2I resolution)
+    {
+        switch (MazeType)
+        {
+            case MazeGenerationType.Random: return GD.Randf();
+            case MazeGenerationType.Mod3: return (x + y) % 3;
+            case MazeGenerationType.Mod6: return (x + y) % 6;
+            case MazeGenerationType.Ribs: return x + y;
+            case MazeGenerationType.Radial:
+                float centerX = resolution.X / 2f;
+                float centerY = resolution.Y / 2f;
+                return Mathf.Abs(x - centerX) + MathF.Abs(y - centerY);
+            case MazeGenerationType.Waffle:
+                if (x % 5 == 0 || y % 5 == 0) return 0f;
+                return GD.Randf();
+        }
+
+        return 0f;
     }
 }

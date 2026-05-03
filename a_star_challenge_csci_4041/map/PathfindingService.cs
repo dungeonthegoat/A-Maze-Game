@@ -1,38 +1,49 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using System.Transactions;
 
-[GlobalClass]
-public partial class PathfindingService : Node
+
+public static class PathfindingService
 {
     private const int PenaltyWeight = 5;
     private const int MaxDepth = 1000000;
 
-    public static List<Vector2I> Pathfind(Vector2I start, Vector2I goal, Dictionary<Vector2I, List<Vector2I>> neighborMap, float greediness, Dictionary<Vector2I, int> penaltyMap)
+    private const int MaxArraySize = 400000; // 300 x 300
+    private static readonly PriorityQueue<Vector2I, float> _openSet = new();
+    private static readonly float[] _gScores = new float[MaxArraySize];
+    private static readonly int[] _cameFrom = new int[MaxArraySize];
+
+    public static List<Vector2I> Pathfind(
+        Vector2I start, 
+        Vector2I goal, 
+        Dictionary<Vector2I, List<Vector2I>> neighborMap, 
+        float greediness, 
+        Dictionary<Vector2I, int> penaltyMap,
+        Vector2I resolution)
     {
-        // Create a priority queue with the first cell in it
-        var openSet = new PriorityQueue<Vector2I, float>();
-        openSet.Enqueue(start, 0);
+        Array.Fill(_gScores, float.MaxValue);
+        Array.Fill(_cameFrom, -1);
+        _openSet.Clear();
 
-        // A dictionary of every node's g score
-        var gScores = new Dictionary<Vector2I, float>();
-        gScores[start] = 0;
+        int totalWidth = resolution.X * 2;
+        int offsetX = resolution.X;
+        int offsetY = resolution.Y;
 
-        // A dictionary representing where each node came from
-        var cameFrom = new Dictionary<Vector2I, Vector2I>();
+        int GetIndex(Vector2I pos) => (pos.Y + offsetY) * totalWidth + (pos.X + offsetX);
+
+        int startIdx = GetIndex(start);
+        _gScores[startIdx] = 0;
+        _openSet.Enqueue(start, 0);
 
         // Keep track of the closest node for depth limiting
         Vector2I closestNode = start;
         float closestDist = Distance(start, goal);
-
         int iterations = 0;
 
-        while (openSet.Count > 0)
+        while (_openSet.Count > 0)
         {
-            Vector2I current = openSet.Dequeue();
+            Vector2I current = _openSet.Dequeue();
+            int currentIdx = GetIndex(current);
             iterations++;
 
             // Update the closest node/dist
@@ -44,26 +55,30 @@ public partial class PathfindingService : Node
             }
 
             // If we reached the goal, return the path
-            if (current == goal) return ReconstructPath(cameFrom, current);
-
-            // If depth limit was exceeded, return the closest path
-            if (iterations > MaxDepth) return ReconstructPath(cameFrom, closestNode);
-
-            if (!neighborMap.ContainsKey(current)) continue;
-
-            foreach (Vector2I neighbor in neighborMap[current])
+            if (current == goal || iterations >= MaxDepth)
             {
-                int penalty = penaltyMap.ContainsKey(neighbor) ? penaltyMap[neighbor] : 0;
-                float g = gScores[current] + 1f + (penalty * PenaltyWeight);
+                return ReconstructPath(current, totalWidth, offsetX, offsetY);
+            }
 
-                if (!gScores.ContainsKey(neighbor) || g < gScores[neighbor])
+            if (!neighborMap.TryGetValue(current, out List<Vector2I> neighbors)) continue;
+
+            foreach (Vector2I neighbor in neighbors)
+            {
+                int neighborIdx = GetIndex(neighbor);
+
+                penaltyMap.TryGetValue(neighbor, out int penalty);
+
+                float g = _gScores[currentIdx] + 1f + (penalty * PenaltyWeight);
+
+                if (g < _gScores[neighborIdx])
                 {
-                    cameFrom[neighbor] = current;
-                    gScores[neighbor] = g;
+                    _cameFrom[neighborIdx] = currentIdx;
+                    _gScores[neighborIdx] = g;
 
-                    float f = g + Distance(neighbor, goal) * greediness;
+                    float h = Distance(neighbor, goal) * greediness;
+                    float f = g + h * 1.01f;
 
-                    openSet.Enqueue(neighbor, f);
+                    _openSet.Enqueue(neighbor, f);
                 }
             }
         }
@@ -76,14 +91,23 @@ public partial class PathfindingService : Node
     /// </summary>
     /// <param name="cell"></param>
     /// <returns></returns>
-    private static List<Vector2I> ReconstructPath(Dictionary<Vector2I, Vector2I> cameFrom, Vector2I node)
+    private static List<Vector2I> ReconstructPath(Vector2I current, int totalWidth, int offsetX, int offsetY)
     {
-        var path = new List<Vector2I> { node };
+        var path = new List<Vector2I> { current };
 
-        while (cameFrom.ContainsKey(node))
+        int currentIdx = (current.Y + offsetY) * totalWidth + (current.X + offsetX);
+
+        while (_cameFrom[currentIdx] != -1)
         {
-            node = cameFrom[node];
-            path.Add(node);
+            int parentIdx = _cameFrom[currentIdx];
+
+            int parentY = (parentIdx / totalWidth) - offsetY;
+            int parentX = (parentIdx % totalWidth) - offsetX;
+
+            Vector2I parentPos = new(parentX, parentY);
+            path.Add(parentPos);
+
+            currentIdx = parentIdx;
         }
 
         path.Reverse();

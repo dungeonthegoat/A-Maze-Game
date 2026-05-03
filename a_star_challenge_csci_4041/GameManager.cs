@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 public partial class GameManager : Node2D
@@ -73,18 +74,18 @@ public partial class GameManager : Node2D
         Game.Instance.EmitSignal(Game.SignalName.KeysUpdated, _keysCollected, KeysRequired);
     }
 
-    private void GameLost()
+    private async void GameLost()
     {
         Game.Instance.EmitSignal(Game.SignalName.GameEnded, 0);
         GameEndAnimationPlayer.Play("jumpscare");
-        QueueRestartGame();
+        await QueueRestartGame();
     }
 
-    private void GameWon()
+    private async Task GameWon()
     {
         Game.Instance.EmitSignal(Game.SignalName.GameEnded, 1);
         GameEndAnimationPlayer.Play("victory");
-        QueueRestartGame();
+        await QueueRestartGame();
     }
 
     private async Task QueueRestartGame()
